@@ -1,7 +1,8 @@
 -module(channel_offers_ram).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-add/1, remove/1, read/1]).
+add/1, remove/1, read/1,
+test/0]).
 -record(channel_offer, {cid, oid, price, direction, hd_location}).
 
 init(ok) -> {ok, dict:new()}.
@@ -31,8 +32,17 @@ read_loop([H|T], D) ->
                                  
 add(C) ->
     %cid is the key for storing in a dict.
-    gen_server:cast({add, C}).
+    gen_server:cast(?MODULE, {add, C}).
 remove(CID) ->
-    gen_server:cast({remove, CID}).
+    gen_server:cast(?MODULE, {remove, CID}).
 read(L) when is_list(L) ->%list of cids
-    gen_server:call({read, L}).
+    gen_server:call(?MODULE, {read, L}).
+
+test() ->
+    CID = <<>>,
+    C = #channel_offer{cid = CID},
+    add(C),
+    [C] = read([CID]),
+    remove(CID),
+    [] = read([CID]),
+    success.
