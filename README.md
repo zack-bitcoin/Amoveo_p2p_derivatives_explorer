@@ -8,38 +8,19 @@ The purpose of this tool is so that people can make P2P derivatives offers from 
 Todo
 ======
 before this will be useable, we need to get these tasks done.
-* datastructures
 * databases
 * api
 * javascript library
 * UX
-
-datastructures
-=======
-channel_offer
-* cid
-* oid
-* price
-* buy/sell
-* pointer to the location on the hard drive where the channel offer text is stored.
-
-oracle
-* oracle id
-* ordered list of pointers to channel offers to buy
-* ordered list of pointers to channel offers to sell
-* oracle question text
-* oracle expiration date
 
 databases
 =======
 
 channel offers on the hard drive
 
-dictionary of channel_offer meta data in ram (done)
-
-dictionary of oracles in ram
-
 list of pointers to oracles, sorted by volume of available trades in ram.
+
+all databases need to be preserved on reboot.
 
 
 background processes
