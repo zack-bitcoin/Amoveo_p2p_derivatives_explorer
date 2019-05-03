@@ -35,11 +35,23 @@ databases
 
 channel offers on the hard drive
 
-dictionary of channel_offer meta data in ram
+dictionary of channel_offer meta data in ram (done)
 
 dictionary of oracles in ram
 
 list of pointers to oracles, sorted by volume of available trades in ram.
+
+
+background processes
+=========
+
+scan and delete channel offers if they become invalid.
+
+re-order oracles in terms of volume of available bets.
+
+delete pointers to channel offers if they no longer exist.
+
+if an oracle has no bet_offers in it, then remove it from oracles.erl
 
 
 api
