@@ -76,7 +76,8 @@ The channel offers are viewable in pages.
 If they click on a channel offer, it should display the text they need to copy/paste to participate in the bet.
 
 
-=== Turning it on and off
+Turning it on and off
+=======
 
 First make sure you have an Amoveo node running, and that the keys are unlocked on that node.
 
