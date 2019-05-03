@@ -3,7 +3,7 @@
 -export([start_link/0, init/1]).
 -define(SERVER, ?MODULE).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
--define(keys, [oracles, channel_offers_ram, channel_offers_hd]).
+-define(keys, [oracles, channel_offers_ram, channel_offers_hd, volume_order]).
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 child_killer([]) -> [];

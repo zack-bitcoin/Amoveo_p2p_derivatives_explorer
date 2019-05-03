@@ -8,19 +8,10 @@ The purpose of this tool is so that people can make P2P derivatives offers from 
 Todo
 ======
 before this will be useable, we need to get these tasks done.
-* databases
+* background processes
 * api
 * javascript library
 * UX
-
-databases
-=======
-
-channel offers on the hard drive
-
-list of pointers to oracles, sorted by volume of available trades in ram.
-
-all databases need to be preserved on reboot.
 
 
 background processes
