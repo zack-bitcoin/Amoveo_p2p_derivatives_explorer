@@ -18,6 +18,10 @@ background processes
 =========
 
 scan and delete channel offers if they become invalid.
+* already matched
+* ran out of time
+* creator's account can no longer afford it
+* creator's account nonce changed.
 
 re-order oracles in terms of volume of available bets.
 
