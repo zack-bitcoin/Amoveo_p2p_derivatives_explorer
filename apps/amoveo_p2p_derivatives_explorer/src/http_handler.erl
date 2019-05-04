@@ -17,23 +17,24 @@ handle(Req, State) ->
     {ok, Req4, State}.
 doit({test}) -> {ok, "success"};
 doit({oracle_list}) ->
-    {ok, 0};
+    {ok, volume_order:read()};
 doit({oracle, OID}) ->
-    {ok, 0};
+    {ok, oracles:read(OID)};
 doit({get_offers, L}) ->%list of CIDs
-    {ok, 0};
+    {ok, channel_offers_ram:read(L)};
 doit({get_offer_contract, CID}) ->
-    {ok, 0};
+    {ok, channel_offers_hd:read(CID)};
 doit({add, C}) ->
-    {ok, 0}.
-%doit({work, Nonce, Pubkey}) ->
-    %io:fwrite("attempted work \n"),
-%    mining_pool_server:receive_work(Nonce, Pubkey, IP).
+    %verify that it is a valid channel offer
+    true = channel_offers_ram:valid(C),
+    %check that the oracle exists.
+    CID = ok,
+    OID = ok,
+    Price = ok,
+    Direction = ok,
+    channel_offers_hd:add(CID, C),
+    NCO = channel_offers_ram:new(CID, OID, Price, Direction),
+    channel_offers_ram:add(NCO),
+    {ok, "success"}.
     
 
-pub_split(<<Pubkey:704>>) ->
-    {<<Pubkey:704>>, 0};
-pub_split(PubkeyWithWorkerID) ->
-    <<Pubkey:704, _, ID/binary>> = 
-	PubkeyWithWorkerID,
-    {<<Pubkey:704>>, base64:encode(ID)}.

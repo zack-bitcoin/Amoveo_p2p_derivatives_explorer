@@ -1,10 +1,13 @@
 -module(channel_offers_ram).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-add/1, remove/1, read/1,
+add/1, remove/1, read/1, new/4,
 test/0]).
--record(channel_offer, {cid, oid, price, direction, hd_location}).
+-record(channel_offer, {cid, oid, price, direction}).
 -define(LOC, "channel_offers_ram").
+
+new(CID, OID, Price, Direction) ->
+    #channel_offer{cid = CID, oid = OID, price = Price, direction = Direction}.
 
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -48,6 +51,31 @@ remove(CID) ->
     gen_server:cast(?MODULE, {remove, CID}).
 read(L) when is_list(L) ->%list of cids
     gen_server:call(?MODULE, {read, L}).
+all() -> gen_server:call(?MODULE, all).
+
+clean() ->
+    D = all(),
+    K = dict:fetch_keys(D),
+    clean2(K, D).
+clean2([], _) -> ok;
+clean2([H|T], D) ->
+    V = dict:fetch(H, D),
+    B = valid(V),
+    if
+        B -> ok;
+        true -> 
+            remove(H),
+            channel_offers_hd:remove(H)
+    end,
+    clean2(T, D).
+
+valid(C) ->
+    io:fwrite(C),
+    %invalid if:
+%channel already exists
+%you ran out of time to match the trade
+% nonce is non-zero, and accounts nonce is bigger.
+    true.
 
 test() ->
     CID = <<>>,

@@ -8,7 +8,9 @@
     stdlib,
     ssl,
     cowboy,
-    inets
+    inets,
+    encrypter,
+    jiffy
    ]},
   {env,[]},
   {modules, []},
