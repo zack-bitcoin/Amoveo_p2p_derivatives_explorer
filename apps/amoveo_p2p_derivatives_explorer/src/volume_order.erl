@@ -3,10 +3,11 @@
 -module(volume_order).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-read/0, add/1, sort/0,
+read/0, add/1, sort/0, cron/0,
 test/0]).
 -record(v, {oid, volume}).
 -define(LOC, "volume_order").
+-define(sort_period, 300).%how often to sort orders by volume. 
 init(ok) -> 
     process_flag(trap_exit, true),
     X = db:read(?LOC),
@@ -46,7 +47,55 @@ insert(V, [H|T]) ->
             
 sort_internal(X) ->
     %for every element of X, look up the oracle to calculate the 
-    X.
+    Volumes = sr_volumes(X),
+    SV = sort_by_volume(Volumes),
+    OIDS = grab_oids(SV),
+    OIDS.
+listify([]) -> [];
+listify([H|T]) -> [[H]|T].
+sort_by_volume(L) ->
+    L2 = listify(L),
+    hd(merge_sort(L2)).
+merge_sort([]) -> [];
+merge_sort([X]) -> [X];
+merge_sort(X) ->
+    X2 = merge_sort2(X),
+    merge_sort(X2).
+merge_sort2([]) -> [];
+merge_sort2([X]) -> [X];
+merge_sort2([H|[H2|T]]) ->
+    H3 = merge(H, H2),
+    [H3|merge_sort2(T)].
+merge([], X) -> X;
+merge(X, []) -> X;
+merge([{V1, OID1}|T1], E2 = [{V2, _}|_]) when V1 > V2->
+    [{V1, OID1}|merge(T1, E2)];
+merge(E1, [{V2, OID2}|T2]) ->
+    [{V2, OID2}|merge(E1, T2)].
+grab_oids([]) -> [];
+grab_oids([{_, OID}|T]) ->
+    [OID|grab_oids(T)].
+sr_volumes([]) -> [];
+sr_volumes([H|T]) ->
+    O = oracles:read(H),
+    Trades = oracles:buys(O) ++ oracles:sells(O),
+    TV = sr_trades_volume(Trades),
+    if
+        (TV == 0) ->
+            oracles:remove(H),
+            sr_volumes(T);
+        true ->
+            [{TV, H}|sr_volumes(T)]
+    end.
+sr_trades_volume([]) -> 0;
+sr_trades_volume([H|T]) ->
+    C = channel_offers_ram:read(H),
+    A = channel_offers_ram:amount1(C) +
+        channel_offers_ram:amount2(C),
+    A + sr_trades_volume(T).
+cron() -> utils:cron_job(?sort_period, fun() -> sort() end).
+                  
+                  
 
 test() ->
     V1 = #v{oid = 1, volume = 1},

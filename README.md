@@ -8,26 +8,10 @@ The purpose of this tool is so that people can make P2P derivatives offers from 
 Todo
 ======
 before this will be useable, we need to get these tasks done.
-* background processes
 * api
 * javascript library
 * UX
 
-
-background processes
-=========
-
-scan and delete channel offers if they become invalid.
-* already matched
-* ran out of time
-* creator's account can no longer afford it
-* creator's account nonce changed.
-
-re-order oracles in terms of volume of available bets.
-
-delete pointers to channel offers if they no longer exist.
-
-if an oracle has no bet_offers in it, then remove it from oracles.erl
 
 
 api

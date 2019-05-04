@@ -1,16 +1,21 @@
 -module(channel_offers_ram).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-add/1, remove/1, read/1, new/8,
+add/1, remove/1, read/1, clean/0, new/10, cron/0,
+amount1/1, amount2/1,
 test/0]).
--record(channel_offer, {cid, oid, price, direction, expires, nonce,
+-record(channel_offer, {cid, oid, price, direction, expires, nonce, amount1, amount2,
                        type,%can be binary or scalar.
                         creator
                        }).
+amount1(X) -> X#channel_offer.amount1.
+amount2(X) -> X#channel_offer.amount2.
+              
 -define(LOC, "channel_offers_ram").
+-define(clean_period, 300).%how often to check if channel offers can be removed because they have become invalid.
 
-new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator) ->
-    #channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires = Expires, type = Type, nonce = Nonce, creator = Creator}.
+new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator, Amount1, Amount2) ->
+    #channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires = Expires, type = Type, nonce = Nonce, creator = Creator, amount1 = Amount1, amount2 = Amount2}.
 
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -71,6 +76,9 @@ clean2([H|T], D) ->
             channel_offers_hd:remove(H)
     end,
     clean2(T, D).
+
+cron() -> utils:cron_job(?clean_period, fun() -> clean() end).
+    
 
 valid(C) ->
     %#channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires, type = Type, creator}.

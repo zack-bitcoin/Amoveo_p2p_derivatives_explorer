@@ -2,12 +2,16 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 add/1, remove/1, read/1,
+buys/1, sells/1,
 test/0]).
 -define(LOC, "oracles").
 -record(oracle, {oid, 
                  buys,%pointers to channel offers to buy, ordered by price
                  sells, question, expiration
                 }).
+buys(X) -> X#oracle.buys.
+sells(X) -> X#oracle.sells.
+
 init(ok) ->
     process_flag(trap_exit, true),
     X = db:read(?LOC),
