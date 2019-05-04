@@ -25,15 +25,25 @@ doit({get_offers, L}) ->%list of CIDs
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
 doit({add, C}) ->
-    %verify that it is a valid channel offer
-    true = channel_offers_ram:valid(C),
     %check that the oracle exists.
-    CID = ok,
-    OID = ok,
+    ML = hd(C),
+    SCO = hd(tl(C)),
+    NCO = element(2, SCO),
+    CID = element(9, NCO),
+    OID = lists:nth(9, ML),
+            %imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
+    %look up the range the oracle measures.
+    %use both limits and the amounts of veo locked up to calculate what price is being traded at.
+    Type = lists:nth(15, ML),
+    Expires = element(4, NCO),
+    Nonce = element(3, NCO),
+    io:fwrite(Type),
+    %if binary, we can calculate the price from the ratio of moneys locked up.
     Price = ok,
-    Direction = ok,
+    Direction = lists:nth(1, ML),
+    NCO = channel_offers_ram:new(CID, OID, Price, Direction, Expires, Type, Nonce),
+    true = channel_offers_ram:valid(NCO),
     channel_offers_hd:add(CID, C),
-    NCO = channel_offers_ram:new(CID, OID, Price, Direction),
     channel_offers_ram:add(NCO),
     {ok, "success"}.
     

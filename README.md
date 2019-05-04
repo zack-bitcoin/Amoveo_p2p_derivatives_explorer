@@ -33,17 +33,6 @@ if an oracle has no bet_offers in it, then remove it from oracles.erl
 api
 ====
 
-query the order oracle list
-
-query oracle
-* oid
-
-query channel offer meta data
-* list of cids
-
-query channel offer text
-* cid
-
 submit trade offer
 * channel_offer
 

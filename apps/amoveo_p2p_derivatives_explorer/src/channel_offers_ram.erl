@@ -1,13 +1,16 @@
 -module(channel_offers_ram).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-add/1, remove/1, read/1, new/4,
+add/1, remove/1, read/1, new/8,
 test/0]).
--record(channel_offer, {cid, oid, price, direction}).
+-record(channel_offer, {cid, oid, price, direction, expires, nonce,
+                       type,%can be binary or scalar.
+                        creator
+                       }).
 -define(LOC, "channel_offers_ram").
 
-new(CID, OID, Price, Direction) ->
-    #channel_offer{cid = CID, oid = OID, price = Price, direction = Direction}.
+new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator) ->
+    #channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires = Expires, type = Type, nonce = Nonce, creator = Creator}.
 
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -70,11 +73,27 @@ clean2([H|T], D) ->
     clean2(T, D).
 
 valid(C) ->
-    io:fwrite(C),
+    %#channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires, type = Type, creator}.
+    FN = "127.0.0.1:8080",
+    Height = talker:talk({height}, FN),
+    true = Height < C#channel_offer.expires, %you ran out of time to match the trade
+    io:fwrite(Height),
+    Header = talker:talk({header, Height}, FN),
+    io:fwrite(Header),
+    RootHash = ok,
+    Channel = talker:talk({proof, "channels", C#channel_offer.cid, RootHash}, FN),
     %invalid if:
-%channel already exists
-%you ran out of time to match the trade
-% nonce is non-zero, and accounts nonce is bigger.
+     %channel already exists
+    CON = C#channel_offer.nonce,
+    if
+        (not (0 == CON)) ->
+            Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
+            io:fwrite(Acc),
+            AN = ok,%look it up from the account.
+            true = CON > AN;
+            % nonce is non-zero, and accounts nonce is bigger.
+        true -> ok
+    end,
     true.
 
 test() ->
