@@ -8,14 +8,7 @@ The purpose of this tool is so that people can make P2P derivatives offers from 
 Todo
 ======
 before this will be useable, we need to get these tasks done.
-* javascript library
 * UX
-
-
-
-javascript library
-=========
-write code to test all the different api calls.
 
 
 UX
@@ -28,6 +21,11 @@ allow the user to click on one of the oracles, and it loads the data from the or
 The channel offers are viewable in pages.
 
 If they click on a channel offer, it should display the text they need to copy/paste to participate in the bet.
+
+Testing the javascript code
+=======
+turn it on, then open this in a browser: http://localhost:8090/main.html
+look in javascript console to see what is happening.
 
 
 Turning it on and off
