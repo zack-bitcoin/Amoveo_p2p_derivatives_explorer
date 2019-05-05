@@ -1,6 +1,6 @@
 -module(amoveo_p2p_derivatives_explorer_sup).
 -behaviour(supervisor).
--export([start_link/0, init/1]).
+-export([start_link/0, init/1, stop/0]).
 -define(SERVER, ?MODULE).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 -define(keys, [oracles, channel_offers_ram, channel_offers_hd, volume_order]).

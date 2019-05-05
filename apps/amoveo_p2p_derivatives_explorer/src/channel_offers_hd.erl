@@ -5,7 +5,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 add/2,remove/1,read/1,
 test/0]).
--define(LOC, "channel_offers_hd").
+-define(LOC, "channel_offers_hd.db").
 init(ok) ->
     process_flag(trap_exit, true),
     X = db:read(?LOC),

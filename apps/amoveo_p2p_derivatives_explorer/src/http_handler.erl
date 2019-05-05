@@ -1,5 +1,6 @@
 -module(http_handler).
--export([init/3, handle/2, terminate/3, doit/1]).
+-export([init/3, handle/2, terminate/3, doit/1,
+        test/0]).
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 handle(Req, State) ->
@@ -24,8 +25,9 @@ doit({get_offers, L}) ->%list of CIDs
     {ok, channel_offers_ram:read(L)};
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
-doit({add, C}) ->
+doit({add, C0}) ->
     %check that the oracle exists.
+    C = packer:unpack(C0),
     ML = hd(C),
     SCO = hd(tl(C)),
     NCO = element(2, SCO),
@@ -35,21 +37,58 @@ doit({add, C}) ->
     %look up the range the oracle measures.
     %use both limits and the amounts of veo locked up to calculate what price is being traded at.
     %if binary, we can calculate the price from the ratio of moneys locked up.
-    Price = ok,
     Type = lists:nth(15, ML),
-    io:fwrite(Type),
+    %io:fwrite(Type),%2
+    Amount1 = lists:nth(7, ML),
+    Amount2 = lists:nth(8, ML),
+    Direction = lists:nth(1, ML),
+    Price = case Type of
+                1 -> %binary
+                    Amount1 / Amount2;
+                2 -> %scalar
+                    UL = lists:nth(18, ML),
+                    LL = lists:nth(19, ML),
+                    true = ((LL == 0) or (UL == 1023)),%only accept leverage of 1 for now.
+                    Price0 = (UL + LL) div 2,
+                    case Direction of
+                        1 -> Price0;
+                        2 -> 1023 - Price0
+                    end
+            end,
     Expires = element(4, NCO),
     Nonce = element(3, NCO),
     Creator = element(2, NCO),
-    Direction = lists:nth(1, ML),
-    Amount1 = 0,
-    Amount2 = 0,
-    1=2,
-    NCO = channel_offers_ram:new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator, Amount1, Amount2),
-    true = channel_offers_ram:valid(NCO),
+    NCO2 = channel_offers_ram:new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator, Amount1, Amount2),
+    true = channel_offers_ram:valid(NCO2),
     channel_offers_hd:add(CID, C),
-    channel_offers_ram:add(NCO),
+    channel_offers_ram:add(NCO2),
+    Oracle0 = oracles:read(OID),
+    Oracle = case Oracle0 of
+                 error -> 
+                     NewOracle = oracles:new(OID);
+                 {ok, X} -> X
+             end,
+    Oracle2 = oracles:add_trade(Oracle, NCO2),
+    oracles:add(Oracle2),
+    %io:fwrite([Amount1, Amount2]),
+    C_OIDs = volume_order:read(),
+    B = is_in(OID, C_OIDs),
+    if 
+        B -> ok;
+        true ->
+            %if the oracle doesn't exist, create it.
+            volume_order:add(OID, Amount1+Amount2)
+    end,
+    %io:fwrite(oracles:read(OID)),
     %If the oracle does not exist, then create it.
     {ok, "success"}.
-    
+   
+is_in(X, []) -> false;
+is_in(X, [X|_]) -> true;
+is_in(X, [_|T]) ->
+    is_in(X, T).
 
+test() ->
+    C = <<"[-6,[-6,2,3000,5000,\"BBEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cIcqPojDz40Trf7xdWDlHL8KH+AvrTc2dhSC+35eSjmaQ=\",0,1000000,10000,10000,\"6shH4FO3E3mZ7gBKwWv71NxT0FvUTqaVjhZ7ygMnfCI=\",64239,1000,[-7,2,\"MEQCIEvjwRnANgJrhLfKiPyd3YHSvFXL7XA098Acw9fXrS46AiByuwStQoVjBetI2+GNhmCHA569JSjSxqoAhhAoL+ZRgg==\"],\"AAD67xOHJw/qyEfgU7cTeZnuAErBa/vU3FPQW9ROppWOFnvKAyd8IjBFAiEA8Y2dZkonQU4QXfm6LZqK3les3GP3HlkXRXoJxbiIDY0CIEVn/yOB7CazFCHLeFGUjhk3XkTUVsWYQFkw4Pz2xCPy\",1,2,\"Xy9Tecb4Xx88W4D+NW2CQgYrDIM+9m3r7d/zy6YNe7o=\",10,818,0,0],[\"signed\",[\"nc_offer\",\"BBEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cIcqPojDz40Trf7xdWDlHL8KH+AvrTc2dhSC+35eSjmaQ=\",10,64339,10000,10000,1000,1000,\"Xy9Tecb4Xx88W4D+NW2CQgYrDIM+9m3r7d/zy6YNe7o=\",\"nPwN6mIWS4JUIo2neplltEEifucqc43ytORXToDFtco=\"],\"MEUCIQCwxOaubh3Y7yuPBWZUKJy1jnhqYhLy+U1vRLZNO/pU1AIgX81qJ8HVp0r/Ac48tqG6F7yyYC7gKhcEka4qVk18G9U=\",[-6]]]">>,
+    doit({add, C}),
+    http_handler:doit({oracle_list}).

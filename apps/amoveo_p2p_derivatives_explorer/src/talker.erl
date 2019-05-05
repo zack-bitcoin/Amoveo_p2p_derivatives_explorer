@@ -29,10 +29,11 @@ build_string_peer(IP, Port) ->
     P = integer_to_list(Port),
     "http://" ++ T ++ ":" ++ P ++ "/".
 check_print(S) ->
-    case sync_mode:check() of
-	normal -> ok;
-	quick -> io:fwrite(S)
-    end.
+    io:fwrite(S).
+%    case sync_mode:check() of
+%	normal -> ok;
+%	quick -> io:fwrite(S)
+%    end.
 	    
 talk_helper(_, _, 0, _) ->
     check_print("talk helper fail\n"),

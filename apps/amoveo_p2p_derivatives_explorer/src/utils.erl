@@ -7,4 +7,7 @@ cron2(F, P) ->
     timer:sleep(P * 1000),
     spawn(fun() -> F end),
     cron2(F, P).
+
+off() ->
+    amoveo_p2p_derivatives_explorer_sup:off().
     

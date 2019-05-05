@@ -5,6 +5,7 @@ start(_StartType, _StartArgs) ->
     inets:start(),
     start_http(),
     volume_order:cron(),
+    oracles:cron(),
     channel_offers_ram:cron(),
     amoveo_p2p_derivatives_explorer_sup:start_link().
 stop(_State) ->

@@ -2,7 +2,8 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 add/1, remove/1, read/1, clean/0, new/10, cron/0,
-amount1/1, amount2/1,
+amount1/1, amount2/1, oid/1, cid/1, direction/1, price/1,
+valid/1, all/0,
 test/0]).
 -record(channel_offer, {cid, oid, price, direction, expires, nonce, amount1, amount2,
                        type,%can be binary or scalar.
@@ -10,8 +11,12 @@ test/0]).
                        }).
 amount1(X) -> X#channel_offer.amount1.
 amount2(X) -> X#channel_offer.amount2.
+oid(X) -> X#channel_offer.oid.
+cid(X) -> X#channel_offer.cid.
+direction(X) -> X#channel_offer.direction.
+price(X) -> X#channel_offer.price.
               
--define(LOC, "channel_offers_ram").
+-define(LOC, "channel_offers_ram.db").
 -define(clean_period, 300).%how often to check if channel offers can be removed because they have become invalid.
 
 new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator, Amount1, Amount2) ->
@@ -82,22 +87,19 @@ cron() -> utils:cron_job(?clean_period, fun() -> clean() end).
 
 valid(C) ->
     %#channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires, type = Type, creator}.
-    FN = "127.0.0.1:8080",
-    Height = talker:talk({height}, FN),
+    FN = "http://127.0.0.1:8080",
+    FNL = "http://127.0.0.1:8081",
+    {ok, Height} = talker:talk({height}, FN),
     true = Height < C#channel_offer.expires, %you ran out of time to match the trade
-    io:fwrite(Height),
-    Header = talker:talk({header, Height}, FN),
-    io:fwrite(Header),
-    RootHash = ok,
-    Channel = talker:talk({proof, "channels", C#channel_offer.cid, RootHash}, FN),
-    %invalid if:
-     %channel already exists
+    %{ok, Header} = talker:talk({header, Height}, FN),
+    %RootHash = element(3, Header),
+    {ok, 0} = talker:talk({channel, C#channel_offer.cid}, FNL),%channel does not exist in the consensus state.
     CON = C#channel_offer.nonce,
     if
         (not (0 == CON)) ->
-            Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
-            io:fwrite(Acc),
-            AN = ok,%look it up from the account.
+            %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
+            {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
+            AN = element(3, Acc),%look it up from the account.
             true = CON > AN;
             % nonce is non-zero, and accounts nonce is bigger.
         true -> ok

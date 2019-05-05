@@ -3,10 +3,10 @@
 -module(volume_order).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-read/0, add/1, sort/0, cron/0,
+read/0, add/2, sort/0, cron/0,
 test/0]).
--record(v, {oid, volume}).
--define(LOC, "volume_order").
+-record(v, {oid, volume = 0}).
+-define(LOC, "volume_order.db").
 -define(sort_period, 300).%how often to sort orders by volume. 
 init(ok) -> 
     process_flag(trap_exit, true),
@@ -34,7 +34,8 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 read() -> gen_server:call(?MODULE, read).
 sort() -> gen_server:cast(?MODULE, sort).
-add(V) when is_record(V, v) -> 
+add(OID, A) ->
+    V = #v{oid = OID, volume = A},
     gen_server:cast(?MODULE, {add, V}).
 
 insert(V, []) -> [V];
@@ -47,7 +48,10 @@ insert(V, [H|T]) ->
             
 sort_internal(X) ->
     %for every element of X, look up the oracle to calculate the 
-    Volumes = sr_volumes(X),
+    Volumes = sr_volumes(X), 
+    %io:fwrite("volumes are \n"),
+    %io:fwrite(Volumes),
+    %io:fwrite("volumes are \n"),
     SV = sort_by_volume(Volumes),
     OIDS = grab_oids(SV),
     OIDS.
@@ -55,7 +59,11 @@ listify([]) -> [];
 listify([H|T]) -> [[H]|T].
 sort_by_volume(L) ->
     L2 = listify(L),
-    hd(merge_sort(L2)).
+    L3 = merge_sort(L2),
+    case L2 of
+        [] -> [];
+        [X] -> X
+    end.
 merge_sort([]) -> [];
 merge_sort([X]) -> [X];
 merge_sort(X) ->
@@ -77,19 +85,26 @@ grab_oids([{_, OID}|T]) ->
     [OID|grab_oids(T)].
 sr_volumes([]) -> [];
 sr_volumes([H|T]) ->
-    O = oracles:read(H),
+    %io:fwrite(H),
+    %io:fwrite(oracles:read(H)),
+    {ok, O} = oracles:read(H#v.oid),
     Trades = oracles:buys(O) ++ oracles:sells(O),
-    TV = sr_trades_volume(Trades),
+    %io:fwrite(Trades),%[OID1]
+    %io:fwrite(" trades\n"),
+    Cs = channel_offers_ram:read(Trades),
+    %io:fwrite(Cs),
+    %io:fwrite(" cs \n"),
+    TV = sr_trades_volume(Cs),
     if
         (TV == 0) ->
-            oracles:remove(H),
+            oracles:remove(H#v.oid),
             sr_volumes(T);
         true ->
-            [{TV, H}|sr_volumes(T)]
+            [{TV, H#v.oid}|sr_volumes(T)]
     end.
 sr_trades_volume([]) -> 0;
-sr_trades_volume([H|T]) ->
-    C = channel_offers_ram:read(H),
+sr_trades_volume([C|T]) ->
+    %C = channel_offers_ram:read(H),
     A = channel_offers_ram:amount1(C) +
         channel_offers_ram:amount2(C),
     A + sr_trades_volume(T).
@@ -102,9 +117,9 @@ test() ->
     V2 = #v{oid = 2, volume = 2},
     V3 = #v{oid = 3, volume = 3},
     SR = [V3, V2, V1],
-    add(V2),
-    add(V1),
-    add(V3),
+    add(V2, 0),
+    add(V1, 0),
+    add(V3, 0),
     SR = read(),
     sort(),
     SR = read(),
