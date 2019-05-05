@@ -1,31 +1,10 @@
 amoveo_p2p_derivatives_explorer
 =====
 
-This is a work in progress. It is not ready yet.
-
-The purpose of this tool is so that people can make P2P derivatives offers from the amoveo light node, and post them to this website. The website organizes.
-
-Todo
-======
-before this will be useable, we need to get these tasks done.
-* UX
+The purpose of this tool is so that people can make P2P derivatives offers from the amoveo light node, and post them to this website. The website organizes all the different trade offers that are posted.
 
 
-UX
-======
-
-display the oracle question text in order of the volume of trades available in each market.
-This data should be in pages so we don't load too much from the server at once.
-
-allow the user to click on one of the oracles, and it loads the data from the oracle datastructure.
-The channel offers are viewable in pages.
-
-If they click on a channel offer, it should display the text they need to copy/paste to participate in the bet.
-
-Testing the javascript code
-=======
 turn it on, then open this in a browser: http://localhost:8090/main.html
-look in javascript console to see what is happening.
 
 
 Turning it on and off

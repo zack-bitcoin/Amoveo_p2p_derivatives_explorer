@@ -8,7 +8,7 @@ start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 child_killer([]) -> [];
 child_killer([H|T]) -> 
-    supervisor:terminate_child(testnet_sup, H),
+    supervisor:terminate_child(amoveo_p2p_derivatives_explorer_sup, H),
     child_killer(T).
 stop() -> child_killer(?keys).
 child_maker([]) -> [];

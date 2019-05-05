@@ -9,8 +9,12 @@ handle(Req, _) ->
     PrivDir0 = "../../../../js",
     PrivDir = list_to_binary(PrivDir0),
     true = case F of
+	       <<"/add.js">> -> true;
+	       <<"/utils.js">> -> true;
+	       <<"/oracle_list.js">> -> true;
 	       <<"/favicon.ico">> -> true;
 	       <<"/main.html">> -> true;
+	       <<"/test.html">> -> true;
 	       <<"/main.js">> -> true;
 	       <<"/rpc.js">> -> true;
 	       <<"/server.js">> -> true;
