@@ -55,9 +55,9 @@
             var t = document.createElement("div");
             var direction;
             if (h[4] == 2) {
-                direction = "true";
+                direction = "true/long/stablecoin";
             } else {
-                direction = "false";
+                direction = "false/short/long-veo";
             }
             var text = "price = ".concat(h[3]).concat("; you win if the result is ").concat(direction).concat("; they pay = ").concat(h[7]).concat("; you pay = ").concat(h[8]);
             t.innerHTML = text;
