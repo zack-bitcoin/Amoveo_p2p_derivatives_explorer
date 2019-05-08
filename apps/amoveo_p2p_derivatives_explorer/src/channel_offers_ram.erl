@@ -93,18 +93,22 @@ valid(C) ->
     true = Height < C#channel_offer.expires, %you ran out of time to match the trade
     %{ok, Header} = talker:talk({header, Height}, FN),
     %RootHash = element(3, Header),
-    {ok, 0} = talker:talk({channel, C#channel_offer.cid}, FNL),%channel does not exist in the consensus state.
-    CON = C#channel_offer.nonce,
-    if
-        (not (0 == CON)) ->
-            %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
-            {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
-            AN = element(3, Acc),%look it up from the account.
-            true = CON > AN;
-            % nonce is non-zero, and accounts nonce is bigger.
-        true -> ok
-    end,
-    true.
+    COC = talker:talk({channel, C#channel_offer.cid}, FNL),%channel does not exist in the consensus state.
+    case COC of
+        {ok, 0} -> %channel does not exist in the consensus state.
+            CON = C#channel_offer.nonce,
+            if
+                (not (0 == CON)) ->
+                                                %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
+                    {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
+                    AN = element(3, Acc),%look it up from the account.
+                    true = CON > AN;
+                                                % nonce is non-zero, and accounts nonce is bigger.
+                true -> ok
+            end,
+            true;
+        _ -> false%channel offer was already accepted.
+    end.
 
 test() ->
     CID = <<>>,
