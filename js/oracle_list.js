@@ -59,7 +59,7 @@
             } else {
                 direction = "false/short/long-veo";
             }
-            var text = "price = ".concat(h[3]).concat("; you win if the result is ").concat(direction).concat("; they pay = ").concat(h[7]).concat("; you pay = ").concat(h[8]);
+            var text = "price = ".concat(h[3]).concat("; you win if the result is ").concat(direction).concat("; they pay = ").concat(s2c(h[7])).concat("; you pay = ").concat(s2c(h[8])).concat("; expires: ").concat(h[5]);
             t.innerHTML = text;
             offers.appendChild(t);
             var button = button_maker2("display this contract", function() { display_contract(h[1]) });

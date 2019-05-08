@@ -21,3 +21,8 @@ function text_input(query, div) {
     div.appendChild(x);
     return x;
 };
+function token_units() { return 100000000 }; // VEO
+function s2c(x) { return x / token_units(); }
+function c2s(x) {
+    return Math.floor(parseFloat(x.value, 10) * token_units());
+}

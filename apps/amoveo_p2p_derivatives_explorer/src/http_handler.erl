@@ -44,7 +44,7 @@ doit({add, C}) ->
     Direction = lists:nth(1, ML),
     Price = case Type of
                 1 -> %binary
-                    Amount1 / Amount2;
+                    Amount2 / Amount1;
                 2 -> %scalar
                     UL = lists:nth(18, ML),
                     LL = lists:nth(19, ML),
