@@ -5,6 +5,7 @@
     var title2 = document.createElement("h3");
     title2.innerHTML = "Raw Contract";
     div.appendChild(title2);
+    glossary.link2(div, "accepting_channel_offer", "how to accept a trade");
     var contract_div = document.createElement("div");
     div.appendChild(contract_div);
 
@@ -15,7 +16,7 @@
     div.appendChild(offers);
 
     var title = document.createElement("h3");
-    title.innerHTML = "Oracles";
+    title.innerHTML = "Oracles, click to see related trades";
     div.appendChild(title);
 
     variable_public_get(["oracle_list"], function(X) {
