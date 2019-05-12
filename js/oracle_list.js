@@ -54,11 +54,11 @@
         } else {
             var h = l[0];
             var t = document.createElement("div");
-            var direction, type;
+            var type;
             if (h[9] == 1) {
                 type = "binary";
                 price = h[3];
-                return display_offers2(l, h, t, direction, type, price, " or ", "");
+                return display_offers2(l, h, t, type, price, " or ", "");
             } else if (h[9] == 2) {
                 var oid = h[2];
                 type = "scalar"
@@ -66,7 +66,7 @@
                     console.log("oracle_list callback");
                     console.log(oracle_max);
                     price = (1023 - h[3]) * oracle_max / 1023;
-                    return display_offers2(l, h, t, direction, type, price, " stablecoin/veo or ", " veo/stablecoin;");
+                    return display_offers2(l, h, t, type, price, " stablecoin/veo or ", " veo/stablecoin;");
                 });
             } else {
                 console.log(h[9]);
@@ -74,13 +74,22 @@
             }
         }
     };
-    function display_offers2(l, h, t, direction, type, price, d1message, d2message) {
+    function display_offers2(l, h, t, type, price, d1message, d2message) {
+        var direction;
         if (h[4] == 2) {
-            direction = "true/long/stablecoin";
+            if (type == "binary") {
+                direction = "the result is true";
+            } else if (type == "scalar") {
+                direction = "the price of stablecoin measured in veo increases";
+            }
         } else {
-            direction = "false/short/long-veo";
+            if (type == "binary") {
+                direction = "the result is false";
+            } else if (type == "scalar") {
+                direction = "the price of stablecoin measured in veo decreases";
+            }
         }
-        var text = "bet type: ".concat(type).concat("; price = ").concat(price).concat(d1message).concat(1/price).concat(d2message).concat(" you win if the result is ").concat(direction).concat("; they pay = ").concat(s2c(h[7])).concat("; you pay = ").concat(s2c(h[8])).concat("; expires: ").concat(h[5]);
+        var text = "bet type: ".concat(type).concat("; price = ").concat(price.toFixed(5)).concat(d1message).concat((1/price).toFixed(5)).concat(d2message).concat(" you win if ").concat(direction).concat("; they pay = ").concat(s2c(h[7])).concat("; you pay = ").concat(s2c(h[8])).concat("; expires: ").concat(h[5]);
         t.innerHTML = text;
         offers.appendChild(t);
         var button = button_maker2("display this contract", function() { display_contract(h[1]) });

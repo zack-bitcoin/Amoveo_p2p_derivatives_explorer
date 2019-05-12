@@ -35,8 +35,21 @@ handle_call(_, _From, X) -> {reply, X, X}.
 read() -> gen_server:call(?MODULE, read).
 sort() -> gen_server:cast(?MODULE, sort).
 add(OID, A) ->
-    V = #v{oid = OID, volume = A},
-    gen_server:cast(?MODULE, {add, V}).
+    R = read(),
+    B = is_in(OID, R),
+    if
+        B -> ok;
+        true ->
+            V = #v{oid = OID, volume = A},
+            gen_server:cast(?MODULE, {add, V})
+    end.
+is_in(_, []) -> false;
+is_in(OID, [H|T]) ->
+    if
+        (OID == H#v.oid) -> true;
+        true -> is_in(OID, T)
+    end.
+    
 
 insert(V, []) -> [V];
 insert(V, [H|T]) ->
@@ -60,7 +73,7 @@ listify([H|T]) -> [[H]|T].
 sort_by_volume(L) ->
     L2 = listify(L),
     L3 = merge_sort(L2),
-    case L2 of
+    case L3 of
         [] -> [];
         [X] -> X
     end.
