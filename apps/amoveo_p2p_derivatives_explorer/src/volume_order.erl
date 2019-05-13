@@ -69,7 +69,7 @@ sort_internal(X) ->
     OIDS = grab_oids(SV),
     OIDS.
 listify([]) -> [];
-listify([H|T]) -> [[H]|T].
+listify([H|T]) -> [[H]|listify(T)].
 sort_by_volume(L) ->
     L2 = listify(L),
     L3 = merge_sort(L2),
@@ -87,11 +87,11 @@ merge_sort2([X]) -> [X];
 merge_sort2([H|[H2|T]]) ->
     H3 = merge(H, H2),
     [H3|merge_sort2(T)].
-merge([], X) -> X;
-merge(X, []) -> X;
+merge([], X) when is_list(X) -> X;
+merge(X, []) when is_list(X) -> X;
 merge([{V1, OID1}|T1], E2 = [{V2, _}|_]) when V1 > V2->
     [{V1, OID1}|merge(T1, E2)];
-merge(E1, [{V2, OID2}|T2]) ->
+merge(E1, [{V2, OID2}|T2]) when is_list(E1) ->
     [{V2, OID2}|merge(E1, T2)].
 grab_oids([]) -> [];
 grab_oids([{_, OID}|T]) ->
@@ -100,6 +100,9 @@ sr_volumes([]) -> [];
 sr_volumes([H|T]) ->
     %io:fwrite(H),
     %io:fwrite(oracles:read(H)),
+    io:fwrite("sr volumes "),
+    io:fwrite(packer:pack(H)),
+    io:fwrite("\n"),
     {ok, O} = oracles:read(H#v.oid),
     Trades = oracles:buys(O) ++ oracles:sells(O),
     %io:fwrite(Trades),%[OID1]

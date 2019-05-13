@@ -90,24 +90,32 @@ valid(C) ->
     FN = "http://127.0.0.1:8080",
     FNL = "http://127.0.0.1:8081",
     {ok, Height} = talker:talk({height}, FN),
-    true = Height < C#channel_offer.expires, %you ran out of time to match the trade
+    if
+        (Height >= C#channel_offer.expires) -> false; %you ran out of time to match the trade
+        true ->
     %{ok, Header} = talker:talk({header, Height}, FN),
     %RootHash = element(3, Header),
-    COC = talker:talk({channel, C#channel_offer.cid}, FNL),%channel does not exist in the consensus state.
-    case COC of
-        {ok, 0} -> %channel does not exist in the consensus state.
-            CON = C#channel_offer.nonce,
-            if
-                (not (0 == CON)) ->
+            COC = talker:talk({channel, C#channel_offer.cid}, FNL),
+            case COC of
+                {ok, 0} -> %channel does not exist in the consensus state.
+                    CON = C#channel_offer.nonce,
                                                 %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
                     {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
-                    AN = element(3, Acc),%look it up from the account.
-                    true = CON > AN;
-                                                % nonce is non-zero, and accounts nonce is bigger.
-                true -> ok
-            end,
-            true;
-        _ -> false%channel offer was already accepted.
+                    if 
+                        (Acc == 0) -> 
+                            %io:fwrite("account does not exist \n"),
+                            false;
+                        true ->
+                            %io:fwrite(packer:pack(Acc)),
+                            %io:fwrite("\n"),
+                            AN = element(3, Acc),%look it up from the account.
+                            %io:fwrite("check nonce is high enough \n"),
+                            CON > AN
+                    end;
+                _ -> 
+                    %io:fwrite("channel already exists\n"),
+                    false
+            end
     end.
 
 test() ->
