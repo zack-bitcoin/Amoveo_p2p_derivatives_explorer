@@ -4,7 +4,9 @@
 cron_job(Period, F) ->
     spawn(fun() -> cron2(F, Period) end).
 cron2(F, P) ->
-    spawn(fun() -> F() end),
+    spawn(fun() -> 
+                  timer:sleep(1000),
+                  F() end),
     timer:sleep(P * 1000),
     cron2(F, P).
 
