@@ -30,8 +30,8 @@
             return 0;
         } else {
             var h = l[0];
-            //variable_public_get(["oracle", h[1]], function(Oracle) {
-            variable_public_get(["oracle", h], function(Oracle) {
+            variable_public_get(["oracle", h[1]], function(Oracle) {
+            //variable_public_get(["oracle", h], function(Oracle) {
                 console.log(JSON.stringify(Oracle[1]));
                 var button = button_maker2(atob(Oracle[1][4]), function() { return display_oracle(Oracle[1][2], Oracle[1][3]) });
                 div.appendChild(button);
