@@ -17,6 +17,8 @@ handle(Req, State) ->
     {ok, Req4} = cowboy_req:reply(200, Headers, D, Req3),
     {ok, Req4, State}.
 doit({test}) -> {ok, "success"};
+doit({oracle_list, 2}) ->
+    {ok, active_oracles:read()};
 doit({oracle_list}) ->
     {ok, volume_order:read()};
 doit({oracle, OID}) ->

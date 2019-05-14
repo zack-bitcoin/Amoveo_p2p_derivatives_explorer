@@ -4,6 +4,7 @@
 start(_StartType, _StartArgs) ->
     inets:start(),
     start_http(),
+    active_oracles:cron(),
     volume_order:cron(),
     oracles:cron(),
     channel_offers_ram:cron(),
