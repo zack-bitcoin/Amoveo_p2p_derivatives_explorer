@@ -66,8 +66,16 @@
                 oracle_limit(oid, function(oracle_max) {
                     console.log("oracle_list callback");
                     console.log(oracle_max);
-                    price = (1023 - h[3]) * oracle_max / 1023;
-                    return display_offers2(l, h, t, type, price, " stablecoin/veo or ", " veo/stablecoin;");
+                    var direction = h[4];
+                    if (direction == 2) {
+                        price = (1023 - h[3]) * oracle_max / 1023;
+                    } else if (direction == 1) {
+                        price = h[3] * oracle_max / 1023;
+                    } else {
+                        console.log("fail");
+                        return 0
+                    };
+                    return display_offers2(l, h, t, type, price, " veo/stablecoin or ", " stablecoin/veo;");
                 });
             } else {
                 console.log(h[9]);

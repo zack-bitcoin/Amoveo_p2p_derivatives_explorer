@@ -66,8 +66,9 @@ sort_internal(X) ->
     %io:fwrite(Volumes),
     %io:fwrite("volumes are \n"),
     SV = sort_by_volume(Volumes),
-    OIDS = grab_oids(SV),
-    OIDS.
+    SV.
+%OIDS = grab_oids(SV),
+%    OIDS.
 listify([]) -> [];
 listify([H|T]) -> [[H]|listify(T)].
 sort_by_volume(L) ->

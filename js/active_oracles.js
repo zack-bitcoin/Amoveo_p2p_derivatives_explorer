@@ -2,7 +2,7 @@
     var div = document.createElement("div");
     document.body.appendChild(div);
     variable_public_get(["oracle_list", 2], function(X) {
-        console.log(JSON.stringify(X));
+        //console.log(JSON.stringify(X));
         return display_oracles(X.slice(1));
     });
     function display_oracles(L) {
