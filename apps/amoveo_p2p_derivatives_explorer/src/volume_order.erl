@@ -66,9 +66,9 @@ sort_internal(X) ->
     %io:fwrite(Volumes),
     %io:fwrite("volumes are \n"),
     SV = sort_by_volume(Volumes),
-    SV.
-%OIDS = grab_oids(SV),
-%    OIDS.
+    %SV.
+    OIDS = grab_oids(SV),
+    OIDS.
 listify([]) -> [];
 listify([H|T]) -> [[H]|listify(T)].
 sort_by_volume(L) ->
@@ -95,8 +95,8 @@ merge([{V1, OID1}|T1], E2 = [{V2, _}|_]) when V1 > V2->
 merge(E1, [{V2, OID2}|T2]) when is_list(E1) ->
     [{V2, OID2}|merge(E1, T2)].
 grab_oids([]) -> [];
-grab_oids([{_, OID}|T]) ->
-    [OID|grab_oids(T)].
+grab_oids([{V, OID}|T]) ->
+    [#v{oid = OID, volume = V}|grab_oids(T)].
 sr_volumes([]) -> [];
 sr_volumes([H|T]) ->
     %io:fwrite(H),
