@@ -102,7 +102,7 @@ valid(C) ->
                                                 %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
                     {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
                     if 
-                        (Acc == 0) -> 
+                        ((Acc == "empty") or ((Acc == empty) or (Acc == 0))) -> 
                             %io:fwrite("account does not exist \n"),
                             false;
                         true ->
