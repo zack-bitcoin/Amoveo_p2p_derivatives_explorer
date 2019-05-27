@@ -34,8 +34,10 @@
             variable_public_get(["oracle", h[1]], function(Oracle) {
             //variable_public_get(["oracle", h], function(Oracle) {
                 console.log(JSON.stringify(Oracle));
-                var button = button_maker2(atob(Oracle[1][4]), function() { return display_oracle(Oracle[1][2], Oracle[1][3]) });
+                var t = text(atob(Oracle[1][4]));
+                var button = button_maker2("display trades", function() { return display_oracle(Oracle[1][2], Oracle[1][3]) });
                 div.appendChild(button);
+                div.appendChild(t);
                 div.appendChild(br());
                 display_oracles(l.slice(1));
             });
