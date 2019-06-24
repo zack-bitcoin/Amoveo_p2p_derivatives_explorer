@@ -104,14 +104,31 @@
         var text = "bet type: ".concat(type).concat("; price = ").concat(price.toFixed(5)).concat(d1message).concat((1/price).toFixed(5)).concat(d2message).concat(" you win if ").concat(direction).concat("; they pay = ").concat(s2c(h[7])).concat("; you pay = ").concat(s2c(h[8])).concat("; expires: ").concat(h[5]);
         t.innerHTML = text;
         offers.appendChild(t);
-        var button = button_maker2("display this contract", function() { display_contract(h[1]) });
+        var button = button_maker2("display a copy/pasteable version of this contract", function() { display_contract(h, type) });
         offers.appendChild(button);
         offers.appendChild(br());
         display_offers(l.slice(1));
     };
-    function display_contract(CID) {
+    function plus_encode(s) {
+        if (s == "") { return ""; }
+        var h = s[0];
+        if (h == "+") { h = "%2B"; }
+        return h.concat(plus_encode(s.slice(1)));
+    };
+    function display_contract(h, type) {
+        var CID = h[1];
         variable_public_get(["get_offer_contract", CID], function(C) {
+            var copy_contract_link = document.createElement("div");
+            var contract_type = type;
+            console.log(JSON.stringify(h));
+            console.log(JSON.stringify(C));
+            var oid = plus_encode(h[2]);
+            var UL = C[1][1][18];
+            var LL = C[1][1][19];
+            copy_contract_link.innerHTML = "<a href=".concat("\"/otc_derivatives.html?auto_fill=").concat(contract_type).concat("&oracle=").concat(oid).concat("&upper_limit=").concat(UL).concat("&lower_limit=").concat(LL).concat("\" onclick=\"javascript:event.target.port=8080\"").concat(">open this contract in the contract-editor</a>");
             contract_div.innerHTML = JSON.stringify(C[1]);
+            contract_div.appendChild(copy_contract_link);
+            contract_div.appendChild(br());
             //console.log(JSON.stringify(C[1]));
         });
     };
