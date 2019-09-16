@@ -17,10 +17,15 @@ new(OID) ->
     FNL = "http://127.0.0.1:8081",
     FN = "http://127.0.0.1:8080",
     {ok, Oracle} = talker:talk({oracle, OID}, FNL),
-    {ok, {_, Q}} = talker:talk({oracle, OID}, FN),
-    E = element(5, Oracle),
-    #oracle{oid = OID, buys = [], sells = [],
-            question = Q, expiration = E}.
+    case Oracle of
+        0 -> #oracle{oid = OID, buys = [], sells = [],
+                     question = <<"unknown question ", (base64:encode(OID))/binary>>, expiration = 0};
+        _ ->
+            {ok, {_, Q}} = talker:talk({oracle, OID}, FN),
+            E = element(5, Oracle),
+            #oracle{oid = OID, buys = [], sells = [],
+                    question = Q, expiration = E}
+    end.
 add_trade(Oracle, Trade) ->
     OID = Oracle#oracle.oid,
     OID = channel_offers_ram:oid(Trade),
