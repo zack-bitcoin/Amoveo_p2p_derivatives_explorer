@@ -14,8 +14,8 @@ test/0]).
 buys(X) -> X#oracle.buys.
 sells(X) -> X#oracle.sells.
 new(OID) ->
-    FNL = "http://127.0.0.1:8081",
-    FN = "http://127.0.0.1:8080",
+    FN = utils:server_url(external),
+    FNL = utils:server_url(internal),
     {ok, Oracle} = talker:talk({oracle, OID}, FNL),
     case Oracle of
         0 -> #oracle{oid = OID, buys = [], sells = [],

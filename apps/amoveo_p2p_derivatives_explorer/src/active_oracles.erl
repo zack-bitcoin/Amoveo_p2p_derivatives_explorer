@@ -17,8 +17,8 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
 
 get_active_oracles() ->
-    {ok, X} = talker:talk({oracles}, {{127,0,0,1}, 8081}),
-    {ok, Height} = talker:talk({height}, {{127,0,0,1}, 8081}),
+    {ok, X} = utils:talk({oracles}),
+    {ok, Height} = utils:talk({height}),
     X2 = result0(X), %only keep ones where the result is 0
     X4 = live(X2, Height),
     % [{<<"oracle question text, {oracle, ...}}|_]

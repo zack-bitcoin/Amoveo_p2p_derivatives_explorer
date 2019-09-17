@@ -87,11 +87,13 @@ cron() -> utils:cron_job(?clean_period, fun() -> clean() end).
 
 valid(C) ->
     %#channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires, type = Type, creator}.
-    FN = "http://127.0.0.1:8080",
-    FNL = "http://127.0.0.1:8081",
+    FN = utils:server_url(external),
+    FNL = utils:server_url(internal),
     {ok, Height} = talker:talk({height}, FN),
     if
-        (Height >= C#channel_offer.expires) -> false; %you ran out of time to match the trade
+        (Height >= C#channel_offer.expires) -> 
+            %io:fwrite("ran out of time"),
+            false; %you ran out of time to match the trade
         true ->
     %{ok, Header} = talker:talk({header, Height}, FN),
     %RootHash = element(3, Header),
@@ -104,6 +106,10 @@ valid(C) ->
                     if 
                         ((Acc == "empty") or ((Acc == empty) or (Acc == 0))) -> 
                             %io:fwrite("account does not exist \n"),
+                            %io:fwrite(FNL),
+                            %io:fwrite("\n"),
+                            %io:fwrite(packer:pack([C#channel_offer.creator, Acc])),
+                            %io:fwrite("\n"),
                             false;
                         true ->
                             %io:fwrite(packer:pack(Acc)),
