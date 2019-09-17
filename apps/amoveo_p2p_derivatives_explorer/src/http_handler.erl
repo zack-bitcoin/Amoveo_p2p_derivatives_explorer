@@ -30,8 +30,9 @@ doit({get_offer_contract, CID}) ->
 doit({add, C}) ->
     %check that the oracle exists.
     %C = packer:unpack(C0),
-    ML = hd(C),
-    SCO = hd(tl(C)),
+    ML = hd(C),%message list
+    SCO = hd(tl(C)),%signed channel offer
+    Rest = tl(tl(C)),
     NCO = element(2, SCO),
     CID = element(9, NCO),
     OID = lists:nth(9, ML),
@@ -67,7 +68,7 @@ doit({add, C}) ->
     Oracle0 = oracles:read(OID),
     Oracle = case Oracle0 of
                  error -> 
-                     NewOracle = oracles:new(OID);
+                     NewOracle = oracles:new(OID, Rest);
                  {ok, X} -> X
              end,
     Oracle2 = oracles:add_trade(Oracle, NCO2),

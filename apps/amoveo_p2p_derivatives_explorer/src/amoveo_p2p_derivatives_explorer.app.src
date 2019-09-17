@@ -10,7 +10,8 @@
     cowboy,
     inets,
     encrypter,
-    jiffy
+    jiffy,
+    pink_hash
    ]},
   {env,[]},
   {modules, []},
