@@ -132,13 +132,16 @@
             var our_amount = F(C[1][2][1][5]);
             var their_amount = F(C[1][2][1][4]);
             var oracle_height = C[1][3][2];
-            var direction = C[1][2][1][2];//either 1 or 2.
+            //var direction = C[1][2][1][2];//either 1 or 2.
+            var direction = C[1][1][1];//either 1 or 2.
             var d_string;
             if (direction == 1) {
                 d_string = "false";
             } else if (direction == 2) {
                 d_string = "true";
             } else {
+                console.log(JSON.stringify(C[1][2][1]));
+                console.log(direction);
                 console.log("badly formed contract offer");
                 return(0);
             }

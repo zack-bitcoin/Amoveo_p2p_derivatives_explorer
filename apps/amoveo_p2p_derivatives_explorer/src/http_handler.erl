@@ -61,7 +61,7 @@ doit({add, C}) ->
     Expires = element(4, NCO),
     Nonce = element(3, NCO),
     Creator = element(2, NCO),
-    NCO2 = channel_offers_ram:new(CID, OID, Price, Direction, Expires, Type, Nonce, Creator, Amount1, Amount2),
+    NCO2 = channel_offers_ram:new(CID, OID, Price, Direction, Expires, Type, Creator, Amount1, Amount2),
     true = channel_offers_ram:valid(NCO2),
     channel_offers_hd:add(CID, C),
     channel_offers_ram:add(NCO2),
