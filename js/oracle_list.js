@@ -136,7 +136,7 @@
             var d_string;
             if (direction == 1) {
                 d_string = "false";
-            } else (direction == 2) {
+            } else if (direction == 2) {
                 d_string = "true";
             } else {
                 console.log("badly formed contract offer");
