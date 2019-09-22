@@ -100,6 +100,7 @@ valid(C) ->
             COC = talker:talk({channel, C#channel_offer.cid}, FNL),
             case COC of
                 {ok, 0} -> %channel does not exist in the consensus state.
+                    COA = C#channel_offer.amount1,
                     %CON = C#channel_offer.nonce,
                                                 %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
                     {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
@@ -112,12 +113,13 @@ valid(C) ->
                             io:fwrite("\n"),
                             false;
                         true -> 
-                            true
+                            %true
                             %io:fwrite(packer:pack(Acc)),
                             %io:fwrite("\n"),
-                            %AN = element(3, Acc),%look it up from the account.
+                            AB = element(2, Acc),%look it up from the account.
                             %io:fwrite("check nonce is high enough \n"),
                             %CON > AN
+                            AB > COA
                     end;
                 _ -> 
                     io:fwrite("channel already exists\n"),
