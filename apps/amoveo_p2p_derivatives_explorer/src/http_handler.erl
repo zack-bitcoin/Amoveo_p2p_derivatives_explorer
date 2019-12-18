@@ -32,11 +32,12 @@ doit({add, C}) ->
     %C = packer:unpack(C0),
     ML = hd(C),%message list
     SCO = hd(tl(C)),%signed channel offer
-    Rest = tl(tl(C)),
+    %Rest = tl(tl(C)),
     NCO = element(2, SCO),
     CID = element(9, NCO),
     OID = lists:nth(9, ML),
-    %imsg = [-6, db.bet_direction_val, bet_expires, maxprice, keys.pub(), db.their_address_val, period, db.our_amount_val, db.their_amount_val, oid, height, db.delay, contract_sig, signedPD, spk_nonce, db.oracle_type_val, db.cid, db.bits_val, db.upper_limit, db.lower_limit, db.payment];
+    Question = lists:nth(23, ML),
+    OracleStarts = lists:nth(22, ML),
     %look up the range the oracle measures.
     %use both limits and the amounts of veo locked up to calculate what price is being traded at.
     %if binary, we can calculate the price from the ratio of moneys locked up.
@@ -68,7 +69,8 @@ doit({add, C}) ->
     Oracle0 = oracles:read(OID),
     Oracle = case Oracle0 of
                  error -> 
-                     NewOracle = oracles:new(OID, Rest);
+                     %NewOracle = oracles:new(OID, Rest);
+                     NewOracle = oracles:new(OID, Question, OracleStarts);
                  {ok, X} -> X
              end,
     Oracle2 = oracles:add_trade(Oracle, NCO2),

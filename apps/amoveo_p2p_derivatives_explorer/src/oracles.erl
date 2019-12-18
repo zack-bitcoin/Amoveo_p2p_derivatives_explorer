@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
 add/1, remove/1, read/1,
-buys/1, sells/1, new/2, add_trade/2,
+buys/1, sells/1, new/3, add_trade/2,
 clean/0, cron/0,
 test/0]).
 -define(LOC, "oracles.db").
@@ -13,15 +13,14 @@ test/0]).
                 }).
 buys(X) -> X#oracle.buys.
 sells(X) -> X#oracle.sells.
-new(OID, Rest) ->
+new(OID, Question, Expires) ->
     FN = utils:server_url(external),
     FNL = utils:server_url(internal),
+    S = <<Expires:32,0:32,0:32,(hash:doit(Question))/binary>>,
+    OID = hash:doit(S),%verify that the oid is correctly generated for this oracle question.
     {ok, Oracle} = talker:talk({oracle, OID}, FNL),
     case Oracle of
         0 -> 
-            [{Question, Expires}] = Rest,
-            S = <<Expires:32,0:32,0:32,(hash:doit(Question))/binary>>,
-            OID = hash:doit(S),%verify that the oid is correctly generated for this oracle question.
             #oracle{oid = OID, 
                     buys = [], 
                     sells = [],
@@ -30,7 +29,9 @@ new(OID, Rest) ->
         _ ->
             Rest = [],
             {ok, {_, Q}} = talker:talk({oracle, OID}, FN),
+            Question = Q,
             E = element(5, Oracle),
+            E = Expires,
             #oracle{oid = OID, buys = [], sells = [],
                     question = Q, expiration = E}
     end.

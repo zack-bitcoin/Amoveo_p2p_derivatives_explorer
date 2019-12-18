@@ -129,9 +129,6 @@
                 var Y = parseInt(X) / 100000000;
                 return(Y.toFixed(8));
             };
-            var our_amount = F(C[1][2][1][5]);
-            var their_amount = F(C[1][2][1][4]);
-            var oracle_height = C[1][3][2];
             //var direction = C[1][2][1][2];//either 1 or 2.
             var direction = C[1][1][1];//either 1 or 2.
             var d_string;
@@ -145,8 +142,11 @@
                 console.log("badly formed contract offer");
                 return(0);
             }
-            copy_contract_link.innerHTML = "<a href=".concat("\"/otc_derivatives.html?auto_fill=").concat(contract_type).concat("&oracle=").concat(oid).concat("&our_amount=").concat(our_amount).concat("&their_amount=").concat(their_amount).concat("&oracle_height=").concat(oracle_height).concat("&bet_direction=").concat(d_string).concat("&upper_limit=").concat(UL).concat("&lower_limit=").concat(LL).concat("\" onclick=\"javascript:event.target.port=8080\"").concat(">open this contract in the contract-editor</a>");
             contract_div.innerHTML = JSON.stringify(C[1]);
+            var our_amount = F(C[1][2][1][5]);
+            var their_amount = F(C[1][2][1][4]);
+            var oracle_height = C[1][3][2];
+            copy_contract_link.innerHTML = "<a href=".concat("\"/otc_derivatives.html?auto_fill=").concat(contract_type).concat("&oracle=").concat(oid).concat("&our_amount=").concat(our_amount).concat("&their_amount=").concat(their_amount).concat("&oracle_height=").concat(oracle_height).concat("&bet_direction=").concat(d_string).concat("&upper_limit=").concat(UL).concat("&lower_limit=").concat(LL).concat("\" onclick=\"javascript:event.target.port=8080\"").concat(">open this contract in the contract-editor</a>");
             contract_div.appendChild(copy_contract_link);
             contract_div.appendChild(br());
             //console.log(JSON.stringify(C[1]));
