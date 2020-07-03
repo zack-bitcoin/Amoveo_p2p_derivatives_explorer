@@ -17,7 +17,7 @@ direction(X) -> X#channel_offer.direction.
 price(X) -> X#channel_offer.price.
               
 -define(LOC, "channel_offers_ram.db").
--define(clean_period, 300).%how often to check if channel offers can be removed because they have become invalid.
+-define(clean_period, 20).%how often to check if channel offers can be removed because they have become invalid.
 
 new(CID, OID, Price, Direction, Expires, Type, Creator, Amount1, Amount2) ->
     #channel_offer{cid = CID, oid = OID, price = Price, direction = Direction, expires = Expires, type = Type, nonce = 0, creator = Creator, amount1 = Amount1, amount2 = Amount2}.
