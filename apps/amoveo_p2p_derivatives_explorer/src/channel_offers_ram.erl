@@ -91,7 +91,7 @@ valid(C) ->
     FNL = utils:server_url(internal),
     {ok, Height} = talker:talk({height}, FN),
     if
-        (Height >= C#channel_offer.expires) -> 
+        ((Height - 1) >= C#channel_offer.expires) -> 
             io:fwrite("ran out of time"),
             false; %you ran out of time to match the trade
         true ->
