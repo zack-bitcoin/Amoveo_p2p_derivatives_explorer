@@ -6,7 +6,7 @@ buys/1, sells/1, new/3, add_trade/2,
 clean/0, cron/0,
 test/0]).
 -define(LOC, "oracles.db").
--define(clean_period, 300).
+-define(clean_period, 20).
 -record(oracle, {oid, 
                  buys,%pointers to channel offers to buy, ordered by price
                  sells, question, expiration
