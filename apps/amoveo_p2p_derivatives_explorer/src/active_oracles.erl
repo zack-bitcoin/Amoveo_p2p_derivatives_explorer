@@ -4,7 +4,7 @@
 refresh/0, read/0, 
 cron/0,
 test/0]).
--define(refresh_period, 300).
+-define(refresh_period, 20).
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
