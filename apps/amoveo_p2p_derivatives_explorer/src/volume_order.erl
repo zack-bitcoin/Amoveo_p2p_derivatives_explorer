@@ -7,7 +7,7 @@ read/0, add/2, sort/0, cron/0,
 test/0]).
 -record(v, {oid, volume = 0}).
 -define(LOC, "volume_order.db").
--define(sort_period, 300).%how often to sort orders by volume. 
+-define(sort_period, 30).%how often to sort orders by volume. 
 init(ok) -> 
     process_flag(trap_exit, true),
     X = db:read(?LOC),
