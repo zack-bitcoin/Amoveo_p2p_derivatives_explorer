@@ -85,6 +85,8 @@ doit({add, C}) ->
             volume_order:add(OID, Amount1+Amount2)
     end,
     {ok, "success"};
+doit({add, 2, X}) -> {ok, close_offers:add(X)};
+doit({read, 2, X}) -> {ok, close_offers:read(X)};
 doit(X) ->
     io:fwrite("http handler doit fail"),
     io:fwrite(X).
