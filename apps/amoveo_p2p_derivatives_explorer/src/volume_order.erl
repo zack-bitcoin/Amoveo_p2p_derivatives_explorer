@@ -104,20 +104,24 @@ sr_volumes([H|T]) ->
     io:fwrite("sr volumes "),
     io:fwrite(packer:pack(H)),
     io:fwrite("\n"),
-    {ok, O} = oracles:read(H#v.oid),
-    Trades = oracles:buys(O) ++ oracles:sells(O),
+    case oracles:read(H#v.oid) of
+        error -> sr_volumes(T);
+        {ok, O} ->
+            %{ok, O} = oracles:read(H#v.oid),
+            Trades = oracles:buys(O) ++ oracles:sells(O),
     %io:fwrite(Trades),%[OID1]
     %io:fwrite(" trades\n"),
-    Cs = channel_offers_ram:read(Trades),
+            Cs = channel_offers_ram:read(Trades),
     %io:fwrite(Cs),
     %io:fwrite(" cs \n"),
-    TV = sr_trades_volume(Cs),
-    if
-        (TV == 0) ->
-            oracles:remove(H#v.oid),
-            sr_volumes(T);
-        true ->
-            [{TV, H#v.oid}|sr_volumes(T)]
+            TV = sr_trades_volume(Cs),
+            if
+                (TV == 0) ->
+                    oracles:remove(H#v.oid),
+                    sr_volumes(T);
+                true ->
+                    [{TV, H#v.oid}|sr_volumes(T)]
+            end
     end.
 sr_trades_volume([]) -> 0;
 sr_trades_volume([C|T]) ->
