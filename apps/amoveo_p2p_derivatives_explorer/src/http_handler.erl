@@ -33,6 +33,8 @@ doit({get_offers, L}) ->%list of CIDs
             BadCIDs = read_filter(Txs),
             list_subtract(L, BadCIDs)
          end,
+    io:fwrite(packer:pack([L, L2])),
+    io:fwrite("\n"),
     {ok, channel_offers_ram:read(L2)};
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
