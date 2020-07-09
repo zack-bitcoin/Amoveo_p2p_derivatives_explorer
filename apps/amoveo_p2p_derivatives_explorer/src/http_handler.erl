@@ -122,7 +122,10 @@ read_filter([{signed, T, _, _}|R]) when (element(1, T) == nc_accept) ->
 list_subtract([], _) -> [];
 list_subtract([H|T], L) -> 
     B = is_in(H, L),
-    list_subtract(T, L);
-list_subtract([H|T], L) -> 
-    [H|list_subtract(T, L)].
+    if
+        B -> list_subtract(T, L);
+        true -> [H|list_subtract(T, L)]
+    end.
+%list_subtract([H|T], L) -> 
+%    [H|list_subtract(T, L)].
 
