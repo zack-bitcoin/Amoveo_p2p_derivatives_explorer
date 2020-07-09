@@ -63,7 +63,13 @@ add(C) ->
 remove(CID) ->
     gen_server:cast(?MODULE, {remove, CID}).
 read(L) when is_list(L) ->%list of cids
-    gen_server:call(?MODULE, {read, L}).
+    %TODO, we should filter this list to remove anything that is in the mempool:
+    FN = utils:server_url(external),
+    {ok, Txs} = talker:talk({txs}, FN),
+    BadCIDs = read_filter(Txs),
+    L2 = list_subtract(L, BadCIDs),
+    %remove these cids from L.
+    gen_server:call(?MODULE, {read, L2}).
 all() -> gen_server:call(?MODULE, all).
 
 clean() ->
@@ -126,6 +132,23 @@ valid(C) ->
                     false
             end
     end.
+
+read_filter([]) -> [];
+read_filter([{signed, T, _, _}|R]) when (element(1, T) == nc_accept) -> 
+    CID = element(9, T),
+    [CID|read_filter(R)].
+
+is_in(X, [X|_]) -> true;
+is_in(X, [_|T]) -> 
+    is_in(X, T);
+is_in(_, []) -> false.
+
+list_subtract([], _) -> [];
+list_subtract([H|T], L) -> 
+    B = is_in(H, L),
+    list_subtract(T, L);
+list_subtract([H|T], L) -> 
+    [H|list_subtract(T, L)].
 
 test() ->
     CID = <<>>,
