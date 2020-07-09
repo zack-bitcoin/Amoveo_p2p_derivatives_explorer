@@ -72,8 +72,8 @@ read(L) when is_list(L) ->%list of cids
             BadCIDs = read_filter(Txs),
             list_subtract(L, BadCIDs)
          end,
-    io:fwrite(packer:pack([L, L2])),
-    io:fwrite("\n"),
+    %io:fwrite(packer:pack([L, L2])),
+    %io:fwrite("\n"),
     %remove these cids from L.
     gen_server:call(?MODULE, {read, L2}).
 all() -> gen_server:call(?MODULE, all).

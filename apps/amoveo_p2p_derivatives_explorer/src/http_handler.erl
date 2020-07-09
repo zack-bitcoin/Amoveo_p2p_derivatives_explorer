@@ -24,7 +24,7 @@ doit({oracle_list}) ->
 doit({oracle, OID}) ->
     {ok, oracles:read(OID)};
 doit({get_offers, L}) ->%list of CIDs
-    io:fwrite("get offers api call\n"),
+    %io:fwrite("get offers api call\n"),
     {ok, channel_offers_ram:read(L)};
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
