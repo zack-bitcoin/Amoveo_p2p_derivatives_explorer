@@ -25,7 +25,15 @@ doit({oracle, OID}) ->
     {ok, oracles:read(OID)};
 doit({get_offers, L}) ->%list of CIDs
     %io:fwrite("get offers api call\n"),
-    {ok, channel_offers_ram:read(L)};
+    FN = utils:server_url(external),
+    L2 = case talker:talk({txs}, FN) of
+        bad_peer -> L;
+        {ok, Txs} ->
+            %{ok, Txs} = talker:talk({txs}, FN),
+            BadCIDs = read_filter(Txs),
+            list_subtract(L, BadCIDs)
+         end,
+    {ok, channel_offers_ram:read(L2)};
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
 doit({add, C}) ->
@@ -101,3 +109,15 @@ test() ->
     C = <<"[-6,[-6,2,3000,5000,\"BBEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cIcqPojDz40Trf7xdWDlHL8KH+AvrTc2dhSC+35eSjmaQ=\",0,1000000,10000,10000,\"6shH4FO3E3mZ7gBKwWv71NxT0FvUTqaVjhZ7ygMnfCI=\",64239,1000,[-7,2,\"MEQCIEvjwRnANgJrhLfKiPyd3YHSvFXL7XA098Acw9fXrS46AiByuwStQoVjBetI2+GNhmCHA569JSjSxqoAhhAoL+ZRgg==\"],\"AAD67xOHJw/qyEfgU7cTeZnuAErBa/vU3FPQW9ROppWOFnvKAyd8IjBFAiEA8Y2dZkonQU4QXfm6LZqK3les3GP3HlkXRXoJxbiIDY0CIEVn/yOB7CazFCHLeFGUjhk3XkTUVsWYQFkw4Pz2xCPy\",1,2,\"Xy9Tecb4Xx88W4D+NW2CQgYrDIM+9m3r7d/zy6YNe7o=\",10,818,0,0],[\"signed\",[\"nc_offer\",\"BBEuaxBNwXiTpEMTZI2gExMGpxCwAapTyFrgWMu5n4cIcqPojDz40Trf7xdWDlHL8KH+AvrTc2dhSC+35eSjmaQ=\",10,64339,10000,10000,1000,1000,\"Xy9Tecb4Xx88W4D+NW2CQgYrDIM+9m3r7d/zy6YNe7o=\",\"nPwN6mIWS4JUIo2neplltEEifucqc43ytORXToDFtco=\"],\"MEUCIQCwxOaubh3Y7yuPBWZUKJy1jnhqYhLy+U1vRLZNO/pU1AIgX81qJ8HVp0r/Ac48tqG6F7yyYC7gKhcEka4qVk18G9U=\",[-6]]]">>,
     doit({add, packer:unpack(C)}),
     http_handler:doit({oracle_list}).
+
+read_filter([]) -> [];
+read_filter([{signed, T, _, _}|R]) when (element(1, T) == nc_accept) -> 
+    CID = element(9, T),
+    [CID|read_filter(R)].
+list_subtract([], _) -> [];
+list_subtract([H|T], L) -> 
+    B = is_in(H, L),
+    list_subtract(T, L);
+list_subtract([H|T], L) -> 
+    [H|list_subtract(T, L)].
+

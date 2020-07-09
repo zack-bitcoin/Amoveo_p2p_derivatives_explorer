@@ -64,18 +64,10 @@ remove(CID) ->
     gen_server:cast(?MODULE, {remove, CID}).
 read(L) when is_list(L) ->%list of cids
     %TODO, we should filter this list to remove anything that is in the mempool:
-    FN = utils:server_url(external),
-    L2 = case talker:talk({txs}, FN) of
-        bad_peer -> L;
-        {ok, Txs} ->
-            %{ok, Txs} = talker:talk({txs}, FN),
-            BadCIDs = read_filter(Txs),
-            list_subtract(L, BadCIDs)
-         end,
     %io:fwrite(packer:pack([L, L2])),
     %io:fwrite("\n"),
     %remove these cids from L.
-    gen_server:call(?MODULE, {read, L2}).
+    gen_server:call(?MODULE, {read, L}).
 all() -> gen_server:call(?MODULE, all).
 
 clean() ->
