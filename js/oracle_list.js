@@ -147,6 +147,7 @@
                 return(0);
             }
             contract_div.innerHTML = JSON.stringify(C[1]);
+            console.log(JSON.stringify(C));
             var our_amount = F(C[1][2][1][5]);
             var their_amount = F(C[1][2][1][4]);
             var oracle_height = C[1][3][2];

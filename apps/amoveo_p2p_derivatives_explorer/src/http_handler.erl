@@ -24,20 +24,13 @@ doit({oracle_list}) ->
 doit({oracle, OID}) ->
     {ok, oracles:read(OID)};
 doit({get_offers, L}) ->%list of CIDs
-    %io:fwrite("get offers api call\n"),
     FN = utils:server_url(external),
     L2 = case talker:talk({txs}, FN) of
         bad_peer -> L;
         {ok, Txs} ->
-            %{ok, Txs} = talker:talk({txs}, FN),
             BadCIDs = read_filter(Txs),
-                 io:fwrite("bad cids\n"),
-                 io:fwrite(packer:pack(BadCIDs)),
-                 io:fwrite("\n"),
             list_subtract(L, BadCIDs)
          end,
-    io:fwrite(packer:pack([L, L2])),
-    io:fwrite("\n"),
     {ok, channel_offers_ram:read(L2)};
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
