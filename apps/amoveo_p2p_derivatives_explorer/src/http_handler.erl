@@ -31,6 +31,9 @@ doit({get_offers, L}) ->%list of CIDs
         {ok, Txs} ->
             %{ok, Txs} = talker:talk({txs}, FN),
             BadCIDs = read_filter(Txs),
+                 io:fwrite("bad cids\n"),
+                 io:fwrite(packer:pack(BadCIDs)),
+                 io:fwrite("\n"),
             list_subtract(L, BadCIDs)
          end,
     io:fwrite(packer:pack([L, L2])),
