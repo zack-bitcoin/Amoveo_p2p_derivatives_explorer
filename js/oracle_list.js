@@ -43,8 +43,9 @@
                     div.appendChild(t);
                     div.appendChild(br());
                 };
-                display_oracles(l.slice(1));
+                //display_oracles(l.slice(1));
             });
+            display_oracles(l.slice(1));
         };
     };
     function display_oracle(Buys, Sells) {
