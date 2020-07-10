@@ -112,7 +112,9 @@ test() ->
 read_filter([]) -> [];
 read_filter([{signed, T, _, _}|R]) when (element(1, T) == nc_accept) -> 
     CID = element(9, T),
-    [CID|read_filter(R)].
+    [CID|read_filter(R)];
+read_filter([_|T]) -> 
+    read_filter(T).
 list_subtract([], _) -> [];
 list_subtract([H|T], L) -> 
     B = is_in(H, L),
