@@ -111,7 +111,8 @@ test() ->
 
 read_filter([]) -> [];
 read_filter([{signed, T, _, _}|R]) when (element(1, T) == nc_accept) -> 
-    Offer = element(3, T),
+    SOffer = element(3, T),
+    {signed, Offer, _, _} = SOffer,
     CID = element(9, Offer),
     [CID|read_filter(R)];
 read_filter([_|T]) -> 
