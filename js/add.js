@@ -1,4 +1,4 @@
-(function add() {
+(function() {
     var div = document.createElement("div");
     document.body.appendChild(div);
     var status = document.createElement("p");

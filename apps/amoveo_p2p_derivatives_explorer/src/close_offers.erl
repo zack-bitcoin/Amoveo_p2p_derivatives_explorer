@@ -9,7 +9,7 @@ init(ok) ->
             case ets:file2tab(?LOC) of
                 {ok, ?MODULE} -> ok;
                 {error, _} ->
-                    ets:new(?MODULE, [set, named_table, compressed])
+                    ets:new(?MODULE, [bag, named_table])
             end;
         _ -> ok
     end,

@@ -131,23 +131,6 @@ valid(C) ->
             end
     end.
 
-read_filter([]) -> [];
-read_filter([{signed, T, _, _}|R]) when (element(1, T) == nc_accept) -> 
-    CID = element(9, T),
-    [CID|read_filter(R)].
-
-is_in(X, [X|_]) -> true;
-is_in(X, [_|T]) -> 
-    is_in(X, T);
-is_in(_, []) -> false.
-
-list_subtract([], _) -> [];
-list_subtract([H|T], L) -> 
-    B = is_in(H, L),
-    list_subtract(T, L);
-list_subtract([H|T], L) -> 
-    [H|list_subtract(T, L)].
-
 test() ->
     CID = <<>>,
     C = #channel_offer{cid = CID},
