@@ -10,8 +10,7 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast(refresh, _) -> 
-    X = get_active_oracles(),
+handle_cast({refresh, X}, _) -> 
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _From, X) -> {reply, X, X}.
@@ -102,7 +101,8 @@ test() ->
 read() ->
     gen_server:call(?MODULE, read).
 refresh() ->
-    gen_server:cast(?MODULE, refresh).
+    G = get_active_oracles(),
+    gen_server:cast(?MODULE, {refresh, G}).
 
 
 cron() -> utils:cron_job(?refresh_period, fun() -> refresh() end).

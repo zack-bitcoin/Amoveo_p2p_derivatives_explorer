@@ -22,11 +22,10 @@ talk(X) ->
             
 
 cron_job(Period, F) ->
+    timer:sleep(1000),
     spawn(fun() -> cron2(F, Period) end).
 cron2(F, P) ->
-    spawn(fun() -> 
-                  timer:sleep(1000),
-                  F() end),
+    spawn(F),
     timer:sleep(P * 1000),
     cron2(F, P).
 
