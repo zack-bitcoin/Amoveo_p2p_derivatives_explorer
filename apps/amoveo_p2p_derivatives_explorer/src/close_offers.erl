@@ -58,6 +58,9 @@ clean() ->
               end, 
               success, ?MODULE).
 clean2(X = {Pubkey, CloseOffer, TS}) ->
+    io:fwrite("attempt to clean "),
+    io:fwrite(packer:pack(X)),
+    io:fwrite("\n"),
     [_, _, _, Stx] = CloseOffer,
     Tx = element(2, Stx),
 %-record(ctc2, {aid1 = 0, aid2 = 0, fee = 0,
@@ -89,9 +92,12 @@ clean2(X = {Pubkey, CloseOffer, TS}) ->
                 end
         end,
     if
-        B -> gen_server:cast(?MODULE, {delete, X});
+        B -> 
+            io:fwrite("removed\n"),
+            gen_server:cast(?MODULE, {delete, X});
         true -> ok
-    end.
+    end,
+    io:fwrite("clean success \n").
 
     
     
