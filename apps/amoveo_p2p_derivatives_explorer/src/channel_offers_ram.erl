@@ -94,40 +94,35 @@ valid(C) ->
     FN = utils:server_url(external),
     FNL = utils:server_url(internal),
     {ok, Height} = talker:talk({height}, FN),
+    {ok, COC} = talker:talk({channel, C#channel_offer.cid}, FNL),
     if
+        not(COC == 0) ->
+            if
+                (element(11, C) == 1) ->
+                    %channel was closed, we don't need this offer any more.
+                    false;
+                true ->
+                    %channel is active, keep this offer.
+                    true
+            end;
         ((Height + 1) >= C#channel_offer.expires) -> 
             io:fwrite("ran out of time"),
-            false; %you ran out of time to match the trade
+            false; %offer is expired without the channel being created. so we can delete it.
         true ->
-    %{ok, Header} = talker:talk({header, Height}, FN),
-    %RootHash = element(3, Header),
-            COC = talker:talk({channel, C#channel_offer.cid}, FNL),
-            case COC of
-                {ok, 0} -> %channel does not exist in the consensus state.
-                    COA = C#channel_offer.amount1,
-                    %CON = C#channel_offer.nonce,
-                                                %Acc = talker:talk({proof, "channels", C#channel_offer.creator, RootHash}, FN),
-                    {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
-                    if 
-                        ((Acc == "empty") or ((Acc == empty) or (Acc == 0))) -> 
-                            io:fwrite("account does not exist \n"),
-                            io:fwrite(FNL),
-                            io:fwrite("\n"),
-                            io:fwrite(packer:pack([C#channel_offer.creator, Acc])),
-                            io:fwrite("\n"),
-                            false;
-                        true -> 
-                            %true
-                            %io:fwrite(packer:pack(Acc)),
-                            %io:fwrite("\n"),
-                            AB = element(2, Acc),%look it up from the account.
-                            %io:fwrite("check nonce is high enough \n"),
-                            %CON > AN
-                            AB > COA
-                    end;
-                _ -> 
-                    io:fwrite("channel already exists\n"),
-                    false
+            %check if the account can afford to pay this offer.
+            COA = C#channel_offer.amount1,
+            {ok, Acc} = talker:talk({account, C#channel_offer.creator}, FNL),
+            if 
+                ((Acc == "empty") or ((Acc == empty) or (Acc == 0))) -> 
+                    io:fwrite("account does not exist \n"),
+                    io:fwrite(FNL),
+                    io:fwrite("\n"),
+                    io:fwrite(packer:pack([C#channel_offer.creator, Acc])),
+                    io:fwrite("\n"),
+                    false;
+                true -> 
+                    AB = element(2, Acc),
+                    AB > COA
             end
     end.
 
