@@ -97,7 +97,13 @@ clean2(X = {Pubkey, CloseOffer, TS}) ->
             gen_server:cast(?MODULE, {delete, X});
         true -> ok
     end,
-    io:fwrite("clean success \n").
+    io:fwrite("clean success \n");
+clean2(X) ->
+    io:fwrite("close offers failure"),
+    io:fwrite(packer:pack(X)),
+    io:fwrite("\n").
+    
+
 
     
     
