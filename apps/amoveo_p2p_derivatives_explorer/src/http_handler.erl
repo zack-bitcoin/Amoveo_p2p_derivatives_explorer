@@ -32,6 +32,14 @@ doit({get_offers, L}) ->%list of CIDs
             list_subtract(L, BadCIDs)
          end,
     {ok, channel_offers_ram:read(L2)};
+doit({get_offers, 2, L}) ->%list of Oracle IDs
+    S1 = lists:map(fun(X) -> oracles:read(X) end,
+                   L),
+    R = get_offers_loop(S1, L, erlang:timestamp(), 60),
+    %grab starting state of L.
+    %keep checking to see if it changes.
+    %if R is 0, nothing changed. if it is 1, then something changed.
+    {ok, R};
 doit({get_offer_contract, CID}) ->
     {ok, channel_offers_hd:read(CID)};
 doit({add, C}) ->
@@ -124,6 +132,21 @@ list_subtract([H|T], L) ->
         B -> list_subtract(T, L);
         true -> [H|list_subtract(T, L)]
     end.
-%list_subtract([H|T], L) -> 
-%    [H|list_subtract(T, L)].
 
+
+get_offers_loop(S1, L, TS, TimeLimit) ->
+    Now = erlang:timestamp(),
+    D = timer:now_diff(Now, TS) div 1000000,%in seconds
+    S2 = lists:map(fun(X) -> oracles:read(X) end,
+                   L),%we could use a different database that keeps a record of thetimes when each oracle is changed. That way we don't need to read so much data out of a slow dictionary.
+    if
+        D > TimeLimit -> 0;
+        S1 == S2 ->
+            timer:sleep(100),%miliseconds
+            get_offers_loop(S1, L, TS, TimeLimit);
+        true -> 1
+    end.
+            
+            
+    
+    

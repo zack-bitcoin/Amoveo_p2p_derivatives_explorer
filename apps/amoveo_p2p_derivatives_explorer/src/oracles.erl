@@ -94,7 +94,9 @@ handle_call(_, _From, X) -> {reply, X, X}.
 add(X) -> 
     gen_server:cast(?MODULE, {add, X}).
 remove(OID) -> gen_server:cast(?MODULE, {remove, OID}).
-read(OID) -> gen_server:call(?MODULE, {read, OID}).
+read(OID) -> 
+    <<_:256>> = OID,
+    gen_server:call(?MODULE, {read, OID}).
 
 clean() -> gen_server:cast(?MODULE, clean).
 clean_internal([], D) -> D;
