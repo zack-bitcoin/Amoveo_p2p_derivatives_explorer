@@ -53,9 +53,10 @@ cron() -> utils:cron_job(?clean_period, fun() -> clean() end).
 
 clean() ->
     ets:foldl(fun(X, _) ->
-                      spawn(fun() -> clean2(X) end)
+                      spawn(fun() -> clean2(X) end),
+                      0
               end, 
-              0, ?MODULE).
+              success, ?MODULE).
 clean2(X = {Pubkey, CloseOffer, TS}) ->
     [_, _, _, Stx] = CloseOffer,
     Tx = element(2, Stx),
