@@ -4,11 +4,11 @@
 start(_StartType, _StartArgs) ->
     inets:start(),
     start_http(),
-    active_oracles:cron(),
-    volume_order:cron(),
-    oracles:cron(),
-    channel_offers_ram:cron(),
-    close_offers:cron(),
+    %active_oracles:cron(),
+    %volume_order:cron(),
+    %oracles:cron(),
+    %channel_offers_ram:cron(),
+    %close_offers:cron(),
     amoveo_p2p_derivatives_explorer_sup:start_link().
 stop(_State) ->
     ok.
