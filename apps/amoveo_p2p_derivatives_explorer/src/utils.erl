@@ -1,8 +1,9 @@
 -module(utils).
 -export([cron_job/2, off/0, server_url/1, talk/1,
-         trade_id/2, trade_id/1]).
+         trade_id/2, trade_id/1, market_id/1]).
 
--define(TestMode, false).
+-define(TestMode, true).
+-include("records.hrl").
 
 server_url(T) ->
     L = case T of
@@ -38,12 +39,6 @@ off() ->
 trade_id(Salt, Pub) ->
     hash:doit(<<Pub/binary,
                 Salt/binary>>).
--record(swap_offer, {
-          acc1, start_limit, end_limit, salt,
-          amount1, cid1, type1, %this is what acc1 gives.
-          amount2, cid2, type2, %this is what acc2 gives.
-          fee1, %what acc1 pays in fees
-          fee2}).
 trade_id(SO) ->
     #swap_offer{
           salt = Salt,

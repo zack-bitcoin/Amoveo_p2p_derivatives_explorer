@@ -19,7 +19,7 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, ID, S}, X) -> 
-    X2 = dict:write(ID, S, X),
+    X2 = dict:store(ID, S, X),
     {noreply, X2};
 handle_cast({remove, ID}, X) -> 
     X2 = dict:erase(ID, X),

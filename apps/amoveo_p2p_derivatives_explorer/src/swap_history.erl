@@ -6,14 +6,7 @@
 
 %this is for storing a history of how the swap order books were created. That way it is easy to follow along with the current state of the market by downloading the parts of the history that you missed.
 
-
--record(swap_tx, {from, offer, fee}).
--record(swap_offer, {
-          acc1, start_limit, end_limit, salt,
-          amount1, cid1, type1, %this is what acc1 gives.
-          amount2, cid2, type2, %this is what acc2 gives.
-          fee1, %what acc1 pays in fees
-          fee2}).
+-include("records.hrl").
 -record(sh, {nonce, l}).
 
 init(ok) -> {ok, dict:new()}.
@@ -29,15 +22,12 @@ handle_cast({remove, MID, TID}, X) ->
         empty -> 
             io:fwrite("can't remove from a non-existant market"),
             {noreply, X};
-        SH ->
-            #sh{
-          nonce = N1,
-          l = L
-         } = SH,
-            SH2 = SH#sh{
-                    nonce = N1 + 1,
-                    l = [{remove, TID}|L]
-                   },
+        #sh{nonce = N1,
+            l = L} ->
+            SH2 = #sh{
+              nonce = N1 + 1,
+              l = [{remove, TID}|L]
+             },
             X2 = dict:store(MID, SH2, X),
             {noreply, X2}
     end;
@@ -45,18 +35,16 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call({add, MID, TID, A1, A2}, _, X) ->
     TS = erlang:timestamp(),
     E = {add, TID, A1, A2, TS},
-    {Y, N} = case dict:find(MID, X) of
-            empty -> #sh{l = [E]};
-            SH -> 
-                #sh{
-              nonce = N1,
-              l = L
-             } = SH,
-                SH#sh{
-                  nonce = N1 + 1,
-                  l = [E|L]
-                 }
-        end,
+    Y = case dict:find(MID, X) of
+                 error -> 
+                     #sh{l = [E]};
+                 #sh{nonce = N1,
+                     l = L} -> 
+                     #sh{
+                      nonce = N1 + 1,
+                      l = [E|L]
+                     }
+             end,
     X2 = dict:store(MID, Y, X),
     N = Y#sh.nonce,
     {reply, N, X2};

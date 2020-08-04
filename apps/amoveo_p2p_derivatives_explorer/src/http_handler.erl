@@ -26,27 +26,24 @@ doit({add, SwapOffer}) ->
                  amount1 = Amount1,
                  amount2 = Amount2
                } = S,
-    MID = utils:market_id(S),
-    TID = utils:trade_id(S),
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
+    MID = utils:market_id(S),
+    TID = utils:trade_id(S),
     swap_full:add(TID, SwapOffer),%full swap data
-    Nonce = swap_history:add(MID, TID, Amount1, Amount2),%history order. so syncing is fast
-    swap_books:add(MID, TID, Price, Amount1, Nonce),%order book of meta data
+    Nonce = swap_history:add(MID, TID, Amount1, Amount2),%cronological order, so we can sync faster.
+    swap_books:add(MID, TID, Price, Amount1, Nonce),%order book 
     {ok, 0};
 doit({history, MID, Nonce}) ->
     %returns the history of updates to market ID since Nonce.
     %if Nonce is up to date, it waits a while before responding.
-    X = swap_history:read(MID, Nonce),
-    {ok, X};
+    {ok, swap_history:read(MID, Nonce)};
 doit({get, ID}) ->
     %returns the current state of market ID
-    X = swap_books:read(ID),
-    {ok, X};
+    {ok, swap_books:read(ID)};
 doit({markets}) ->
     %list of active markets.
-    %TODO New gen server
-    {ok, "unimplemented"};
+    {ok, swap_books:markets()};
 
 %doit({oracle_list, 2}) ->
 %    {ok, active_oracles:read()};
