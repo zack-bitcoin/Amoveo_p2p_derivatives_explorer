@@ -18,9 +18,7 @@ start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({add, S}, X) -> 
-    Offer = element(1, S),
-    ID = utils:trade_id(Offer),
+handle_cast({add, ID, S}, X) -> 
     X2 = dict:write(ID, S, X),
     {noreply, X2};
 handle_cast({remove, ID}, X) -> 
@@ -33,6 +31,6 @@ handle_call({read, ID}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 read(ID) -> gen_server:call(?MODULE, {read, ID}).
-add(ID, S) -> gen_server:cast(?MODULE, {add, S}).
+add(ID, S) -> gen_server:cast(?MODULE, {add, ID, S}).
 remove(ID) -> gen_server:cast(?MODULE, {remove, ID}).
 

@@ -3,6 +3,7 @@
 
 -include("records.hrl").
 doit(S) ->
+    FN = utils:server_url(external),
     {ok, Height} = talker:talk({height}, FN),
     doit(S, Height).
 doit(S, Height) ->
@@ -23,14 +24,20 @@ doit(S, Height) ->
                  end_limit = EL,
                  start_limit = SL,
                  fee1 = Fee1,
+                 fee2 = Fee2,
+                 amount1 = Amount1,
+                 amount2 = Amount2,
                  salt  = Salt,
                  acc1 = Acc1
                } = Offer,
     true = (Height >= SL),
     true = (Height =< EL),
 
-    %check acc1 is paying some minimum fee.
-    true = Fee1 > 70000,
+    %check acc1 is putting some minimum amount into it.
+    true = Fee1 + Amount1 > 1000000,
+
+    %check that the price isn't crazy
+    true = (((Fee2 + Amount2) / (Amount1 + Amount2))) < 0,
 
     %check that the trade id is not already consumed.
     TID = hash:doit(<<Acc1/binary, Salt/binary>>),
@@ -40,7 +47,6 @@ doit(S, Height) ->
     %TODO, check that the swap isn't already in the tx pool.
     {ok, Txs} = talker:talk({txs, FN}),
     true = no_repeats(Acc1, Salt, Txs),
-
 
     true.
     
@@ -53,10 +59,10 @@ no_repeats(Acc, Salt,
                     #swap_offer{
                       acc1 = Acc,
                       salt = Salt
-                     }
+                     },
                     _, _}
               }, _, _}|_]) -> 
     false;
 no_repeats(Acc, Salt, [_|T]) -> 
-    no_repeats(Acc, Salt).
+    no_repeats(Acc, Salt, T).
     

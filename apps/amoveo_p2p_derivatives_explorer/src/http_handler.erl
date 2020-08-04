@@ -1,6 +1,5 @@
 -module(http_handler).
--export([init/3, handle/2, terminate/3, doit/1,
-        test/0]).
+-export([init/3, handle/2, terminate/3, doit/1]).
 -include("records.hrl").
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
@@ -23,13 +22,17 @@ doit({add, SwapOffer}) ->
     %gives the server a new swap offer.
     true = verify_swap:doit(SwapOffer),
     S = element(2, SwapOffer),
+    #swap_offer{
+                 amount1 = Amount1,
+                 amount2 = Amount2
+               } = S,
     MID = utils:market_id(S),
     TID = utils:trade_id(S),
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
-    swap_books:add(MID, TID, Price, Amount1),%order book of meta data
     swap_full:add(TID, SwapOffer),%full swap data
-    swap_history:add(MID, TID, Amount1, Amount2),%history order. so syncing is fast
+    Nonce = swap_history:add(MID, TID, Amount1, Amount2),%history order. so syncing is fast
+    swap_books:add(MID, TID, Price, Amount1, Nonce),%order book of meta data
     {ok, 0};
 doit({history, MID, Nonce}) ->
     %returns the history of updates to market ID since Nonce.

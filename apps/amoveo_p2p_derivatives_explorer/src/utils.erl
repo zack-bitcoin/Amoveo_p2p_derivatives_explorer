@@ -57,7 +57,7 @@ market_id(S) ->
     type1 = T1,
     cid2 = CID2,
     type2 = T2
-   },
+   } = S,
     hash:doit(<<CID1/binary,
                 T1:32,
                 CID2/binary,
