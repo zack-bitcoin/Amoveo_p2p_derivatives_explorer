@@ -51,4 +51,15 @@ trade_id(SO) ->
          } = SO,
     trade_id(Salt, Acc).
              
+market_id(S) ->
+    #swap_offer{
+    cid1 = CID1,
+    type1 = T1,
+    cid2 = CID2,
+    type2 = T2
+   },
+    hash:doit(<<CID1/binary,
+                T1:32,
+                CID2/binary,
+                T2:32>>).
 

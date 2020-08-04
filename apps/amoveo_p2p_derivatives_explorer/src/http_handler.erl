@@ -22,17 +22,20 @@ doit({test}) -> {ok, "success"};
 doit({add, SwapOffer}) ->
     %gives the server a new swap offer.
     true = verify_swap:doit(SwapOffer),
-    swap_books:add(SwapOffer),%order book of meta data
-    swap_full:add(SwapOffer),%full swap data
-    swap_history:add(SwapOffer),%history order. so syncing is fast
-
-    %TODO, possibly add this to this list of active markets.
+    S = element(2, SwapOffer),
+    MID = utils:market_id(S),
+    TID = utils:trade_id(S),
+    <<Max:32>> = <<-1:32>>,
+    Price = Amount1 * Max div Amount2,
+    swap_books:add(MID, TID, Price, Amount1),%order book of meta data
+    swap_full:add(TID, SwapOffer),%full swap data
+    swap_history:add(MID, TID, Amount1, Amount2),%history order. so syncing is fast
     {ok, 0};
-doit({history, ID, Nonce}) ->
+doit({history, MID, Nonce}) ->
     %returns the history of updates to market ID since Nonce.
     %if Nonce is up to date, it waits a while before responding.
-    X = swap_history:read(ID, Nonce),
-    {ok, S};
+    X = swap_history:read(MID, Nonce),
+    {ok, X};
 doit({get, ID}) ->
     %returns the current state of market ID
     X = swap_books:read(ID),

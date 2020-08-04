@@ -1,7 +1,7 @@
 -module(swap_full).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
--export([read/1, add/1, remove/1]).
+-export([read/1, add/2, remove/1]).
 
 %for storing the entire data of swap offers, and oracles used to settle them.
 
@@ -32,6 +32,7 @@ handle_call({read, ID}, _From, X) ->
     {reply, Z, X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
-read(X) -> gen_server:call(?MODULE, {read, X}).
-add(S) -> gen_server:cast(?MODULE, {add, S}).
-remove(X) -> gen_server:cast(?MODULE, {remove, X}).
+read(ID) -> gen_server:call(?MODULE, {read, ID}).
+add(ID, S) -> gen_server:cast(?MODULE, {add, S}).
+remove(ID) -> gen_server:cast(?MODULE, {remove, ID}).
+
