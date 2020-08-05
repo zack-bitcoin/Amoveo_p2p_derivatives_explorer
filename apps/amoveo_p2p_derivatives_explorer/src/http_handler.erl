@@ -20,8 +20,9 @@ doit({test}) -> {ok, "success"};
 
 doit({add, SwapOffer}) ->
     %gives the server a new swap offer.
-    true = verify_swap:doit(SwapOffer),
     S = element(2, SwapOffer),
+    TID = utils:trade_id(S),
+    true = swap_verify:doit(TID, SwapOffer),
     #swap_offer{
                  amount1 = Amount1,
                  amount2 = Amount2,
@@ -33,7 +34,6 @@ doit({add, SwapOffer}) ->
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
     MID = utils:market_id(S),
-    TID = utils:trade_id(S),
     swap_full:add(TID, SwapOffer),%full swap data
     Nonce = swap_history:add(MID, TID, Amount1, Amount2),%cronological order, so we can sync faster.
     swap_books:add(MID, TID, Price, Amount1, Nonce, CID1, Type1, CID2, Type2),%order book 

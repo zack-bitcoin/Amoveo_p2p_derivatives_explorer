@@ -6,6 +6,7 @@
 
 %this is for storing the current order books for all the markets of swap offers.
 
+-define(LOC, "swap_books.db").
 -include("records.hrl").
 
 -record(market, {nonce = 1, mid, cid1, type1, cid2, type2, orders}).
@@ -16,10 +17,21 @@ new_order(TID, Price, Amount) ->
            price = Price,
            amount = Amount}.
 
-init(ok) -> {ok, dict:new()}.
+init(ok) -> 
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    Y = if
+            (X == "") -> dict:new();
+            true -> X
+        end,
+    {ok, Y}.
+
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, X) -> 
+    db:save(?LOC, X),
+    io:format("swap books died!"), 
+    ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, MID, S, Nonce, CID1, Type1, CID2, Type2}, X) -> 
     M2 = case dict:find(MID, X) of
@@ -33,6 +45,9 @@ handle_cast({add, MID, S, Nonce, CID1, Type1, CID2, Type2}, X) ->
                           nonce = Nonce}
          end,
     X2 = dict:store(MID, M2, X),
+    {noreply, X2};
+handle_cast(garbage, X) -> 
+    X2 = garbage(X),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({read, MID}, _From, X) -> 
@@ -55,9 +70,33 @@ read(ID) ->
     gen_server:call(?MODULE, {read, ID}).
 markets() ->
     gen_server:call(?MODULE, markets).
+garbage() ->
+    gen_server:cast(?MODULE, garbage).
 
-garbage_cron() ->
-    ok.
+garbage(D) ->
+    K = dict:fetch_keys(D),
+    garbage2(K, D).
+garbage2([], D) -> D;
+garbage2([MID|T], D) -> 
+    Market = dict:fetch(MID, D),
+    Orders = Market#market.orders,
+    Orders2 = garbage_orders(Orders, MID),
+    Market2 = Market#market{orders = Orders2},
+    D2 = dict:store(MID, Market2, D),
+    garbage2(T, D2).
+garbage_orders([], _) -> [];
+garbage_orders([H|T], MID) -> 
+    TID = H#order.tid,
+    S = swap_full:read(TID),
+    B = swap_verify:doit(S),
+    F = if 
+            B -> [H];
+            true -> 
+                swap_history:remove(MID, TID),
+                swap_full:remove(TID),
+                []
+        end,
+    F ++ garbage_orders(T, MID).
 
 
 merge(S, []) -> [S];
@@ -69,3 +108,10 @@ merge(S, [H|T]) ->
             [H|merge(S, T)]
     end.
     
+
+garbage_cron() ->
+    spawn(fun() ->
+                  timer:sleep(20000),
+                  garbage(),
+                  garbage_cron()
+          end).
