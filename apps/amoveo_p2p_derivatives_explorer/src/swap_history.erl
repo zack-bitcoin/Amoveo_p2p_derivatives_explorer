@@ -38,8 +38,8 @@ handle_cast({remove, MID, TID}, X) ->
         empty -> 
             io:fwrite("can't remove from a non-existant market"),
             {noreply, X};
-        #sh{nonce = N1,
-            l = L} ->
+        {ok, #sh{nonce = N1,
+                 l = L}} ->
             SH2 = #sh{
               nonce = N1 + 1,
               l = [#remove{tid = TID, ts = TS}|L]

@@ -5,7 +5,8 @@
 -module(swap_markets).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-        read/0, refresh/0]).
+        read/0, refresh/0,
+        cron/0]).
 -record(x, {id, cid1, type1, cid2, type2}).
 init(ok) -> {ok, []}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -24,7 +25,13 @@ handle_call(_, _From, X) -> {reply, X, X}.
 read() -> gen_server:call(?MODULE, read).
 refresh() -> gen_server:cast(?MODULE, refresh).
 
-
+cron() ->
+    spawn(fun() ->
+                  timer:sleep(5000),
+                  refresh(),
+                  cron()
+          end).
+    
     
     
     

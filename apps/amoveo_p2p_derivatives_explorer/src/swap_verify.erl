@@ -56,7 +56,18 @@ doit(TID, S, Height) ->
     {ok, Txs} = talker:talk({txs}, FN),
     B5 = no_repeats(Acc1, Salt, Txs),
 
-    B1 and B2 and B3 and B4 and B5.
+    B6 = B1 and B2 and B3 and B4 and B5,
+    Verbose = false,
+    if
+        (Verbose and not(B6)) ->
+            io:fwrite(packer:pack(swap_full:read(TID))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack([B1, B2, B3, B4, B5])),
+            io:fwrite("\n"),
+            ok;
+        true -> ok
+    end,
+    B6.
     
 no_repeats(_, _, []) -> true;
 no_repeats(Acc, Salt, 

@@ -87,14 +87,17 @@ garbage2([MID|T], D) ->
 garbage_orders([], _) -> [];
 garbage_orders([H|T], MID) -> 
     TID = H#order.tid,
-    S = swap_full:read(TID),
-    B = swap_verify:doit(S),
-    F = if 
-            B -> [H];
-            true -> 
-                swap_history:remove(MID, TID),
-                swap_full:remove(TID),
-                []
+    F = case swap_full:read(TID) of
+            error -> [];
+            {ok, S} ->
+                B = swap_verify:doit(TID, S),
+                if 
+                    B -> [H];
+                    true -> 
+                        swap_history:remove(MID, TID),
+                        swap_full:remove(TID),
+                        []
+                end
         end,
     F ++ garbage_orders(T, MID).
 

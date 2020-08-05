@@ -6,6 +6,7 @@ start(_StartType, _StartArgs) ->
     start_http(),
     swap_history:garbage_cron(),
     swap_books:garbage_cron(),
+    %swap_markets:cron(),
     %active_oracles:cron(),
     %volume_order:cron(),
     %oracles:cron(),

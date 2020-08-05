@@ -51,8 +51,8 @@ doit({read, ID}) ->
 doit({markets}) ->
     %list of active markets.
     %we should also say something about the currencies being traded in each market.
-    X = swap_markets:read(),
-    %X = swap_books:markets(),
+    %X = swap_markets:read(),
+    X = swap_books:markets(),
     {ok, X};
 
 %doit({oracle_list, 2}) ->
