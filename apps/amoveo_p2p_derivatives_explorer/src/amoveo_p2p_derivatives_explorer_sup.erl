@@ -5,7 +5,8 @@
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 -define(keys, [swap_history, 
                swap_books, 
-               swap_full
+               swap_full,
+               swap_markets
               ]).
 %active_oracles, oracles, channel_offers_ram, channel_offers_hd, volume_order, close_offers]).
 start_link() ->

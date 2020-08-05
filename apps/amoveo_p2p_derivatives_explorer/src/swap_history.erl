@@ -7,7 +7,7 @@
 %this is for storing a history of how the swap order books were created. That way it is easy to follow along with the current state of the market by downloading the parts of the history that you missed.
 
 -include("records.hrl").
--record(sh, {nonce, l}).
+-record(sh, {nonce = 1, l}).
 
 init(ok) -> {ok, dict:new()}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
@@ -36,15 +36,15 @@ handle_call({add, MID, TID, A1, A2}, _, X) ->
     TS = erlang:timestamp(),
     E = {add, TID, A1, A2, TS},
     Y = case dict:find(MID, X) of
-                 error -> 
-                     #sh{l = [E]};
-                 #sh{nonce = N1,
-                     l = L} -> 
-                     #sh{
-                      nonce = N1 + 1,
-                      l = [E|L]
-                     }
-             end,
+            error -> 
+                #sh{l = [E]};
+            {ok, #sh{nonce = N1,
+                     l = L}} -> 
+                #sh{
+              nonce = N1 + 1,
+              l = [E|L]
+             }
+        end,
     X2 = dict:store(MID, Y, X),
     N = Y#sh.nonce,
     {reply, N, X2};

@@ -24,7 +24,11 @@ doit({add, SwapOffer}) ->
     S = element(2, SwapOffer),
     #swap_offer{
                  amount1 = Amount1,
-                 amount2 = Amount2
+                 amount2 = Amount2,
+                 cid1 = CID1,
+                 type1 = Type1,
+                 cid2 = CID2,
+                 type2 = Type2
                } = S,
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
@@ -32,18 +36,24 @@ doit({add, SwapOffer}) ->
     TID = utils:trade_id(S),
     swap_full:add(TID, SwapOffer),%full swap data
     Nonce = swap_history:add(MID, TID, Amount1, Amount2),%cronological order, so we can sync faster.
-    swap_books:add(MID, TID, Price, Amount1, Nonce),%order book 
+    swap_books:add(MID, TID, Price, Amount1, Nonce, CID1, Type1, CID2, Type2),%order book 
     {ok, 0};
 doit({history, MID, Nonce}) ->
     %returns the history of updates to market ID since Nonce.
     %if Nonce is up to date, it waits a while before responding.
     {ok, swap_history:read(MID, Nonce)};
-doit({get, ID}) ->
+doit({read, 2, ID}) ->
+    %returns the full content of the trade with this ID
+    {ok, swap_full:read(ID)};
+doit({read, ID}) ->
     %returns the current state of market ID
     {ok, swap_books:read(ID)};
 doit({markets}) ->
     %list of active markets.
-    {ok, swap_books:markets()};
+    %we should also say something about the currencies being traded in each market.
+    X = swap_markets:read(),
+    %X = swap_books:markets(),
+    {ok, X};
 
 %doit({oracle_list, 2}) ->
 %    {ok, active_oracles:read()};

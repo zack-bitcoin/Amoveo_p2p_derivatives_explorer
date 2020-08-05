@@ -1,12 +1,12 @@
 -module(verify_swap).
--export([doit/1]).
+-export([doit/2]).
 
 -include("records.hrl").
-doit(S) ->
+doit(TID, S) ->
     FN = utils:server_url(external),
     {ok, Height} = talker:talk({height}, FN),
-    doit(S, Height).
-doit(S, Height) ->
+    doit(TID, S, Height).
+doit(TID, S, Height) ->
     FN = utils:server_url(external),
     FNL = utils:server_url(internal),
 
@@ -46,11 +46,17 @@ doit(S, Height) ->
     %check acc1 is putting some minimum amount into it.
     true = Fee1 + Amount1 > 1000000,
 
+    %check that acc2's fee is reasonable
+    true = Fee2 < 200000,
+
     %check that the trade id is not already consumed.
-    TID = hash:doit(<<Acc1/binary, Salt/binary>>),
+    %TID = hash:doit(<<Acc1/binary, Salt/binary>>),
     %{ok, [_, TopHash]} = talker:talk({top, 1}, FNL),
     %{ok, empty} = talker:talk({proof, "trades", TID, TopHash}, FN),
     {ok, 0} = talker:talk({trade, TID}, FNL),
+
+    %check that we aren't already storing a trade with this id
+    error = swap_full:read(TID),
 
     %TODO, check that the swap isn't already in the tx pool.
     {ok, Txs} = talker:talk({txs}, FN),
