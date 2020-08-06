@@ -90,7 +90,10 @@ garbage_orders([H|T], MID) ->
     F = case swap_full:read(TID) of
             error -> [];
             {ok, S} ->
-                B = swap_verify:doit(TID, S),
+                FN = utils:server_url(external),
+                {ok, Height} = talker:talk({height}, FN),
+                Offer = element(2, S),
+                B = swap_verify:keep_longer(Offer, Height, TID),
                 if 
                     B -> [H];
                     true -> 
