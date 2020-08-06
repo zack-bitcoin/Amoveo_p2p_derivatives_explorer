@@ -12,7 +12,8 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, CID, Text, Height}, X) -> 
-    X2 = dict:store(CID, {Text, Height}, X),
+    Now = erlang:timestamp(),
+    X2 = dict:store(CID, {Text, Height, Now}, X),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, CID}, _From, X) -> 
@@ -21,9 +22,6 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 add(OracleText, OracleHeight) ->
     CID = cid_maker(OracleText, OracleHeight),
-    io:fwrite("binary contracts CID is "),
-    io:fwrite(packer:pack(CID)),
-    io:fwrite("\n"),
     gen_server:cast(?MODULE, {add, CID, OracleText, OracleHeight}). 
 
 exists(OracleText, OracleHeight) ->
@@ -43,8 +41,6 @@ read_oracle(OracleID) ->
     CID = cid_maker(OracleID),
     read_contract(CID).
 
-
-
 cid_maker(OracleText, OracleHeight) ->
     true = is_binary(OracleText),
     QuestionHash = hash:doit(OracleText),
@@ -52,9 +48,6 @@ cid_maker(OracleText, OracleHeight) ->
                       0:32,
                       0:32,
                       QuestionHash/binary>>),
-    io:fwrite("binary contracts oid is "),
-    io:fwrite(packer:pack(OID)),
-    io:fwrite("\n"),
     cid_maker(OID).
 cid_maker(OID) ->
     BinaryCodeStatic = <<" OID ! \
@@ -92,9 +85,6 @@ then ">>,
     %               " ; ">>,
     %BinaryDerivative = compiler_chalang:doit(BinaryCode),
     %BinaryHash = hd(vm(BinaryDerivative)),
-    io:fwrite("binary contracts hash is \n"),
-    io:fwrite(packer:pack(BinaryHash)),
-    io:fwrite("\n"),
     hash:doit(<<BinaryHash/binary,
                           0:256,
                           3:16,

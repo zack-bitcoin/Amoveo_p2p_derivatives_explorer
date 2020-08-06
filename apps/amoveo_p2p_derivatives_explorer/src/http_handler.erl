@@ -38,6 +38,14 @@ doit({add, SwapOffer}) ->
     Nonce = swap_history:add(MID, TID, Amount1, Amount2),%cronological order, so we can sync faster.
     swap_books:add(MID, TID, Price, Amount1, Nonce, CID1, Type1, CID2, Type2),%order book 
     {ok, 0};
+doit({add, 2, Text, Height}) ->
+    binary_contracts:add(Text, Height),
+    {ok, 0};
+doit({read, 3, CID}) ->
+    case binary_contracts:read_contract(CID) of
+        error -> {ok, 0};
+        X -> X
+    end;
 doit({history, MID, Nonce}) ->
     %returns the history of updates to market ID since Nonce.
     %if Nonce is up to date, it waits a while before responding.
