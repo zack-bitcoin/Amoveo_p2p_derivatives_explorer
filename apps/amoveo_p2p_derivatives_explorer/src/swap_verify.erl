@@ -16,6 +16,8 @@ doit(TID, S, Height) ->
                  fee1 = Fee1,
                  fee2 = Fee2,
                  amount1 = Amount1,
+                 cid1 = CID1,
+                 cid2 = CID2,
                  acc1 = Acc1
                } = Offer,
     true = sign:verify_sig(Offer, element(3, S), Acc1),
@@ -31,6 +33,11 @@ doit(TID, S, Height) ->
 
     %check that the start height limit has already occured.
     true = (Height >= SL),
+
+    %TODO verify that all the contract ids are in the binary_contracts database. `binary_contracts:read(CID)`
+    false = (error == binary_contracts:read_contract(CID1)),
+    false = (error == binary_contracts:read_contract(CID2)),
+
     keep_longer(Offer, Height, TID).
 
 keep_longer(Offer, Height, TID) ->
@@ -52,10 +59,10 @@ keep_longer(Offer, Height, TID) ->
     B3 = case CID1 of
              <<0:256>> ->
                  {ok, Acc} = talker:talk({account, Acc1}, FNL),
-                 true = Acc#acc.nonce =< Nonce;
+                 Acc#acc.nonce =< Nonce;
              _ ->
        %TODO, if the offer is sending subcurrency, then the nonce should be for a sub-account.
-                 1=2
+                 false
          end,
 
     %check that the trade id isn't already consumed
