@@ -89,7 +89,16 @@ remove(MarketID, TradeID) ->
     gen_server:cast(?MODULE, {remove, MarketID, TradeID}).
 read(Market, Nonce) ->
     %returns history since Nonce.
-    gen_server:call(?MODULE, {read, Market, Nonce}).
+    read2(Market, Nonce, 30000).
+read2(_, _, N) when N < 0 -> [];
+read2(Market, Nonce, N) ->
+    case gen_server:call(?MODULE, {read, Market, Nonce}) of
+        [] ->
+            T = 100,
+            timer:sleep(T),
+            read2(Market, Nonce, N-T);
+        X -> X
+    end.
 garbage() ->
     gen_server:cast(?MODULE, garbage).
 

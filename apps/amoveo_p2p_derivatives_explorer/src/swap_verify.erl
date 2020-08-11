@@ -2,6 +2,8 @@
 -export([doit/2, keep_longer/3]).
 
 -include("records.hrl").
+-define(verbose, true).
+
 doit(TID, S) ->
     FN = utils:server_url(external),
     {ok, Height} = talker:talk({height}, FN),
@@ -14,31 +16,35 @@ doit(TID, S, Height) ->
     #swap_offer{
                  start_limit = SL,
                  fee1 = Fee1,
-                 fee2 = Fee2,
                  amount1 = Amount1,
                  cid1 = CID1,
                  cid2 = CID2,
                  acc1 = Acc1
                } = Offer,
-    true = sign:verify_sig(Offer, element(3, S), Acc1),
+    B1 = sign:verify_sig(Offer, element(3, S), Acc1),
 
     %check acc1 is putting some minimum amount into it.
-    true = Fee1 + Amount1 > 1000000,
-
-    %check that acc2's fee is reasonable
-    true = Fee2 < 200000,
+    B2 = Fee1 + Amount1 > 1000000,
 
     %check that we aren't already storing a trade with this id
-    true = error == swap_full:read(TID),
+    B4 = error == swap_full:read(TID),
 
     %check that the start height limit has already occured.
-    true = (Height >= SL),
+    B5 = (Height >= SL),
 
     %TODO verify that all the contract ids are in the binary_contracts database. `binary_contracts:read(CID)`
-    false = (error == binary_contracts:read_contract(CID1)),
-    false = (error == binary_contracts:read_contract(CID2)),
-
-    keep_longer(Offer, Height, TID).
+    B6 = (not(error == binary_contracts:read_contract(CID1))),
+    B7 = (not(error == binary_contracts:read_contract(CID2))),
+    B8 = B1 and B2 and B4 and B5 and B6 and B7,
+    if
+        (?verbose and (not B8))-> 
+            io:fwrite("swap verify, bad offer.\n"),
+            io:fwrite(packer:pack([B1, B2, B4, B5, B6, B7])),
+            io:fwrite("\n"),
+            false;
+        (not B8) -> false;
+        true -> keep_longer(Offer, Height, TID)
+    end.
 
 keep_longer(Offer, Height, TID) ->
     FNL = utils:server_url(internal),
@@ -73,17 +79,18 @@ keep_longer(Offer, Height, TID) ->
     B5 = no_repeats(Acc1, Salt, Txs),
 
     B6 = B2 and B3 and B4 and B5,
-    Verbose = false,
     if
-        (Verbose and not(B6)) ->
+        (?verbose and not(B6)) ->
             io:fwrite(packer:pack(swap_full:read(TID))),
             io:fwrite("\n"),
             io:fwrite(packer:pack([B2, B3, B4, B5])),
             io:fwrite("\n"),
-            ok;
-        true -> ok
-    end,
-    B6.
+            false;
+        not(B6) ->
+            false;
+        true -> 
+            true
+    end.
     
 no_repeats(_, _, []) -> true;
 no_repeats(Acc, Salt, 

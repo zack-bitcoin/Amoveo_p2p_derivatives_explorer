@@ -5,11 +5,22 @@
 
 %this is for storing the data needed to enforce the outcome for any binary contract type subcurrency being used
 %so if you want to post a swap tx, the subcurrencies being swapped need to have enforcement data.
+-define(LOC, "binary_contracts.db").
 
-init(ok) -> {ok, dict:new()}.
+init(ok) -> 
+    process_flag(trap_exit, true),
+    X = db:read(?LOC),
+    Y = if
+            (X == "") -> dict:new();
+            true -> X
+        end,
+    {ok, Y}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, X) -> 
+    db:save(?LOC, X),
+    io:format("binary contracts died!"), 
+    ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, CID, Text, Height}, X) -> 
     Now = erlang:timestamp(),
