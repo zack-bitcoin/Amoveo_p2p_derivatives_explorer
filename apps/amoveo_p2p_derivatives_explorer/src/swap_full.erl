@@ -1,7 +1,7 @@
 -module(swap_full).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
--export([read/1, add/2, remove/1]).
+-export([read/1, add/3, remove/1]).
 
 %for storing the entire data of swap offers, and oracles used to settle them.
 
@@ -29,8 +29,8 @@ terminate(_, X) ->
     io:format("swap full died!"), 
     ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({add, ID, S}, X) -> 
-    X2 = dict:store(ID, S, X),
+handle_cast({add, ID, S, T}, X) -> 
+    X2 = dict:store(ID, {S, T}, X),
     {noreply, X2};
 handle_cast({remove, ID}, X) -> 
     X2 = dict:erase(ID, X),
@@ -42,6 +42,6 @@ handle_call({read, ID}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 read(ID) -> gen_server:call(?MODULE, {read, ID}).
-add(ID, S) -> gen_server:cast(?MODULE, {add, ID, S}).
+add(ID, S, X) -> gen_server:cast(?MODULE, {add, ID, S, X}).
 remove(ID) -> gen_server:cast(?MODULE, {remove, ID}).
 

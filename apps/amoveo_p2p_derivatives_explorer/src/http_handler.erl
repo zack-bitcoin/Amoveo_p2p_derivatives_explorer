@@ -18,11 +18,13 @@ handle(Req, State) ->
     {ok, Req4, State}.
 doit({test}) -> {ok, "success"};
 
-doit({add, SwapOffer}) ->
+doit({add, SwapOffer, SecondOffer}) ->%TODO, add 2nd offer to sell winnings. store it in the swap_full.
     %gives the server a new swap offer.
+    io:fwrite("http handler swap add start \n"),
     S = element(2, SwapOffer),
     TID = utils:trade_id(S),
     true = swap_verify:doit(TID, SwapOffer),
+    true = 2000 > size(term_to_binary(SecondOffer)),
     #swap_offer{
                  amount1 = Amount1,
                  amount2 = Amount2,
@@ -34,9 +36,10 @@ doit({add, SwapOffer}) ->
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
     MID = utils:market_id(S),
-    swap_full:add(TID, SwapOffer),%full swap data
     Nonce = swap_history:add(MID, TID, Amount1, Amount2),%cronological order, so we can sync faster.
     swap_books:add(MID, TID, Price, Amount1, Nonce, CID1, Type1, CID2, Type2),%order book 
+    swap_full:add(TID, SwapOffer, SecondOffer),%full swap data
+    io:fwrite("http handler swap add end \n"),
     {ok, 0};
 doit({add, 2, Text, Height}) ->
     binary_contracts:add(Text, Height),
@@ -52,7 +55,8 @@ doit({history, MID, Nonce}) ->
     {ok, swap_history:read(MID, Nonce)};
 doit({read, 2, ID}) ->
     %returns the full content of the trade with this ID
-    {ok, swap_full:read(ID)};
+    {ok, {X, _}} = swap_full:read(ID),
+    {ok, X};
 doit({read, ID}) ->
     %returns the current state of market ID
     {ok, swap_books:read(ID)};

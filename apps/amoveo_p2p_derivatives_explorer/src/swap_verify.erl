@@ -51,10 +51,12 @@ keep_longer(Offer, Height, TID) ->
     FN = utils:server_url(external),
     #swap_offer{
              end_limit = EL,
+             amount1 = Amount1,
              amount2 = Amount2,
              salt  = Salt,
              acc1 = Acc1,
              cid1 = CID1,
+             type1 = Type1,
              nonce = Nonce
           } = Offer,
 
@@ -62,13 +64,27 @@ keep_longer(Offer, Height, TID) ->
     B2 = (Height =< EL),
 
     %check the nonce.
+    {ok, [_, BlockHash]} = talker:talk({top, 1}, FNL),
     B3 = case CID1 of
              <<0:256>> ->
-                 {ok, Acc} = talker:talk({account, Acc1}, FNL),
-                 Acc#acc.nonce =< Nonce;
+                 {ok, Acc} = talker:talk({account, Acc1, BlockHash}, FNL),
+                 {ok, Acc0} = talker:talk({account, Acc1}, FNL),
+                 if
+                     Acc == 0 -> false;
+                     true ->
+                         (Acc0#acc.nonce =< Nonce)
+                             and (Acc#acc.balance >= Amount1)
+                 end;
              _ ->
-       %TODO, if the offer is sending subcurrency, then the nonce should be for a sub-account.
-                 false
+                 %Key = sub_accounts:make_key(Acc1, CID1, Type1),
+                 {ok, SubAcc} = talker:talk({sub_account, Acc1, CID1, Type1, BlockHash}, FNL),
+                 {ok, SubAcc0} = talker:talk({sub_account, Acc1, CID1, Type1}, FNL),
+                 if
+                     SubAcc == 0 -> false;
+                     true ->
+                         (SubAcc0#sub_acc.nonce =< Nonce)
+                             and (SubAcc#sub_acc.balance >= Amount1)
+                 end
          end,
 
     %check that the trade id isn't already consumed

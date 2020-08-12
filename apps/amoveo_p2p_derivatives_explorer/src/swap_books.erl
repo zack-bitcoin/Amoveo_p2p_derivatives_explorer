@@ -7,6 +7,7 @@
 %this is for storing the current order books for all the markets of swap offers.
 
 -define(LOC, "swap_books.db").
+-define(cron, 1000).
 -include("records.hrl").
 
 -record(market, {nonce = 1, mid, cid1, type1, cid2, type2, orders}).
@@ -89,7 +90,7 @@ garbage_orders([H|T], MID) ->
     TID = H#order.tid,
     F = case swap_full:read(TID) of
             error -> [];
-            {ok, S} ->
+            {ok, {S, Second}} ->
                 FN = utils:server_url(external),
                 {ok, Height} = talker:talk({height}, FN),
                 Offer = element(2, S),
@@ -98,6 +99,10 @@ garbage_orders([H|T], MID) ->
                     B -> [H];
                     true -> 
                         swap_history:remove(MID, TID),
+                        case Second of
+                            0 -> ok;
+                            _ -> re_absorb_cron(Second)
+                        end,
                         swap_full:remove(TID),
                         []
                 end
@@ -117,7 +122,35 @@ merge(S, [H|T]) ->
 
 garbage_cron() ->
     spawn(fun() ->
-                  timer:sleep(20000),
+                  timer:sleep(?cron),
                   garbage(),
                   garbage_cron()
           end).
+
+re_absorb_cron(SignedOffer) ->
+    FN = utils:server_url(external),
+    {ok, Height} = talker:talk({height}, FN),
+    spawn(fun()->
+                  re_absorb_cron2(SignedOffer, Height)
+          end).
+re_absorb_cron2(SignedOffer, Height1) ->
+    %for 2 blocks, keep trying to re-add this offer to the order book.
+    io:fwrite("re absorb cron\n"),
+    FN = utils:server_url(external),
+    {ok, Height2} = talker:talk({height}, FN),
+    Offer = element(2, SignedOffer),
+    TID = utils:trade_id(Offer),
+    B = swap_verify:keep_longer(Offer, Height2, TID),%TODO we actually only need to check if their account/sub_account can afford the trade, and we only need to do this once per block.
+    if
+        Height2 > (Height1 + 2) -> 
+            io:fwrite("re absorb cron deleted\n"),
+            %deleting the 2nd offer.
+            ok;
+        B -> 
+            io:fwrite("re absorb cron succeeded\n"),
+            http_handler:doit({add, SignedOffer, 0});
+        true ->
+            timer:sleep(?cron),
+            re_absorb_cron2(SignedOffer, Height1)
+    end.
+            
