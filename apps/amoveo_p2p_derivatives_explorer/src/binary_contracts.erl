@@ -33,7 +33,8 @@ handle_call(_, _From, X) -> {reply, X, X}.
 
 add(OracleText, OracleHeight) ->
     CID = cid_maker(OracleText, OracleHeight),
-    gen_server:cast(?MODULE, {add, CID, OracleText, OracleHeight}). 
+    gen_server:cast(?MODULE, {add, CID, OracleText, OracleHeight}),
+    CID.
 
 exists(OracleText, OracleHeight) ->
     CID = cid_maker(OracleText, OracleHeight),

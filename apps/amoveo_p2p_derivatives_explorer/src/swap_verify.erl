@@ -33,8 +33,10 @@ doit(TID, S, Height) ->
     B5 = (Height >= SL),
 
     %TODO verify that all the contract ids are in the binary_contracts database. `binary_contracts:read(CID)`
-    B6 = (not(error == binary_contracts:read_contract(CID1))),
-    B7 = (not(error == binary_contracts:read_contract(CID2))),
+    B6 = ((not(error == binary_contracts:read_contract(CID1))) or
+                                                                 (not(error == scalar_contracts:read_contract(CID1)))),
+    B7 = ((not(error == binary_contracts:read_contract(CID2))) or
+                                                                 (not(error == scalar_contracts:read_contract(CID2)))),
     B8 = B1 and B2 and B4 and B5 and B6 and B7,
     if
         (?verbose and (not B8))-> 

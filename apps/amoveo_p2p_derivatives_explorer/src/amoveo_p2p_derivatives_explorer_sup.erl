@@ -7,6 +7,7 @@
                swap_books, 
                swap_full,
                swap_markets,
+               scalar_contracts,
                binary_contracts
               ]).
 %active_oracles, oracles, channel_offers_ram, channel_offers_hd, volume_order, close_offers]).
