@@ -7,6 +7,8 @@
 %so if you want to post a swap tx, the subcurrencies being swapped need to have enforcement data.
 -define(LOC, "binary_contracts.db").
 
+-record(binary, {text, height, now, source = <<0:256>>, source_type = 0}).
+
 init(ok) -> 
     process_flag(trap_exit, true),
     X = db:read(?LOC),
@@ -24,7 +26,8 @@ terminate(_, X) ->
 handle_info(_, X) -> {noreply, X}.
 handle_cast({add, CID, Text, Height}, X) -> 
     Now = erlang:timestamp(),
-    X2 = dict:store(CID, {Text, Height, Now}, X),
+    C = #binary{text = Text, height = Height, now = Now},
+    X2 = dict:store(CID, C, X),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, CID}, _From, X) -> 
