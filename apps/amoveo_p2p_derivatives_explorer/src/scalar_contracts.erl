@@ -1,7 +1,7 @@
 -module(scalar_contracts).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-        add/3, exists/3, read_contract/1]).
+        add/3, read_contract/1]).
 
 %-record(c, {string, max_price, oracle_start_height}).
 
@@ -25,6 +25,16 @@ terminate(_, X) ->
     io:format("scalar contracts died!"), 
     ok.
 handle_info(_, X) -> {noreply, X}.
+handle_cast({add, CID, Text, Height, MaxPrice, Source, SourceType}, X) -> 
+    Now = erlang:timestamp(),
+    C = #scalar{text = Text, 
+                height = Height, 
+                max_price = MaxPrice, 
+                now = Now,
+                source = Source,
+                source_type = SourceType},
+    X2 = dict:store(CID, C, X),
+    {noreply, X2};
 handle_cast({add, CID, Text, Height, MaxPrice}, X) -> 
     Now = erlang:timestamp(),
     C = #scalar{text = Text, 
@@ -39,6 +49,8 @@ handle_call({check, CID}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 cid_maker(Text, Height, MaxPrice) ->
+    cid_maker(Text, Height, MaxPrice, <<0:256>>, 0).
+cid_maker(Text, Height, MaxPrice, Source, SourceType) ->
     true = is_binary(Text),
     StaticContract = base64:decode("bpYZNRc5AzAyj4cUGIYWjDpGFBRHFHBxSG8AAAAAAXgAAAAAAngWAAAAAAN4gxSDFhSDFhSDFKyHAAAAAAF5jBWGhgAAAAACeQAAAAADeYw6RhQUAgAAAAEwRxSQjIcWFBYCAAAAIGRuan/EdSKkhbAp0OEF6cQDv9x9li1vx5O6vqNMm3KlcUiGKIYoO0ZHDUiNhxYUAgAAAAEBO0ZHDUiEAAAAAAN5FoIA/////wAAAAADeTMWgoiMBAPo"),
     OracleTextPart = "MaxPrice = " ++ integer_to_list(MaxPrice) ++ "; MaxVal = 4294967295; B = " ++ binary_to_list(Text) ++ " from $0 to $MaxPrice; max(0, min(MaxVal, (B * MaxVal / MaxPrice)) is ",
@@ -46,21 +58,19 @@ cid_maker(Text, Height, MaxPrice) ->
     FullContract = <<2, L:32, (list_to_binary(OracleTextPart))/binary, 0, Height:32, StaticContract/binary>>,
     CH = hash:doit(FullContract),
     CID = hash:doit(<<CH/binary,
-                      0:256,
+                      Source/binary,
                       2:16,
-                      0:16>>),
+                      SourceType:16>>),
     CID.
 
+add(Text, Height, MaxPrice, Source, SourceType) ->
+    CID = cid_maker(Text, Height, MaxPrice, Source, SourceType),
+    gen_server:cast(?MODULE, {add, CID, Text, Height, MaxPrice, Source, SourceType}),
+    CID.
 add(Text, Height, MaxPrice) ->
     CID = cid_maker(Text, Height, MaxPrice),
     gen_server:cast(?MODULE, {add, CID, Text, Height, MaxPrice}),
     CID.
-exists(Text, Height, MaxPrice) ->
-    CID = cid_maker(Text, Height, MaxPrice),
-    case gen_server:call(?MODULE, {check, CID}) of
-        error -> false;
-        _ -> true
-    end.
 read_contract(<<0:256>>) -> 
     true;
 read_contract(CID) ->

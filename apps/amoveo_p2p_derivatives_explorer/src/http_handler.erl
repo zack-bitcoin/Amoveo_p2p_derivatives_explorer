@@ -41,8 +41,14 @@ doit({add, SwapOffer, SecondOffer}) ->%TODO, add 2nd offer to sell winnings. sto
     swap_full:add(TID, SwapOffer, SecondOffer),%full swap data
     io:fwrite("http handler swap add end \n"),
     {ok, 0};
+doit({add, 2, Text, Height, Source, SourceType}) ->
+    CID = binary_contracts:add(Text, Height, Source, SourceType),
+    {ok, CID};
 doit({add, 2, Text, Height}) ->
     CID = binary_contracts:add(Text, Height),
+    {ok, CID};
+doit({add, 3, Text, Height, MaxPrice, Source, SourceType}) ->
+    CID = scalar_contracts:add(Text, Height, MaxPrice, Source, SourceType),
     {ok, CID};
 doit({add, 3, Text, Height, MaxPrice}) ->
     CID = scalar_contracts:add(Text, Height, MaxPrice),
