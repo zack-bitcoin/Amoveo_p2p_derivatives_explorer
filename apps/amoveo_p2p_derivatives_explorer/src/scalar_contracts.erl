@@ -1,7 +1,7 @@
 -module(scalar_contracts).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-        add/3, read_contract/1]).
+        add/3, add/5, read_contract/1]).
 
 %-record(c, {string, max_price, oracle_start_height}).
 
