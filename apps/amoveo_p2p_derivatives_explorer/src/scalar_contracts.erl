@@ -52,10 +52,14 @@ cid_maker(Text, Height, MaxPrice) ->
     cid_maker(Text, Height, MaxPrice, <<0:256>>, 0).
 cid_maker(Text, Height, MaxPrice, Source, SourceType) ->
     true = is_binary(Text),
-    StaticContract = base64:decode("bpYZNRc5AzAyj4cUGIYWjDpGFBRHFHBxSG8AAAAAAXgAAAAAAngWAAAAAAN4gxSDFhSDFhSDFKyHAAAAAAF5jBWGhgAAAAACeQAAAAADeYw6RhQUAgAAAAEwRxSQjIcWFBYCAAAAIGRuan/EdSKkhbAp0OEF6cQDv9x9li1vx5O6vqNMm3KlcUiGKIYoO0ZHDUiNhxYUAgAAAAEBO0ZHDUiEAAAAAAN5FoIA/////wAAAAADeTMWgoiMBAPo"),
+    StaticContract = base64:decode(
+        "bpYZNRc5AzAyj4cUGIYWjDpGFBRHFHBxSG8AAAAAAXgAAAAAAngWAAAAAAN4gxSDFhSDFhSDFKyHAAAAAAJ5jBWGhgAAAAABeQAAAAADeYw6RhQUAgAAAAEwRxSQjIcWFBYCAAAAIGRuan/EdSKkhbAp0OEF6cQDv9x9li1vx5O6vqNMm3KlcUiGKIYoO0ZHDUiNhxYUAgAAAAEBO0ZHDUiEAAAAAAN5FoIA/////wAAAAADeTMWgoiMBAPo"),
+
+%"bpYZNRc5AzAyj4cUGIYWjDpGFBRHFHBxSG8AAAAAAXgAAAAAAngWAAAAAAN4gxSDFhSDFhSDFKyHAAAAAAF5jBWGhgAAAAACeQAAAAADeYw6RhQUAgAAAAEwRxSQjIcWFBYCAAAAIGRuan/EdSKkhbAp0OEF6cQDv9x9li1vx5O6vqNMm3KlcUiGKIYoO0ZHDUiNhxYUAgAAAAEBO0ZHDUiEAAAAAAN5FoIA/////wAAAAADeTMWgoiMBAPo"),
     OracleTextPart = "MaxPrice = " ++ integer_to_list(MaxPrice) ++ "; MaxVal = 4294967295; B = " ++ binary_to_list(Text) ++ " from $0 to $MaxPrice; max(0, min(MaxVal, (B * MaxVal / MaxPrice)) is ",
     L = length(OracleTextPart),
-    FullContract = <<2, L:32, (list_to_binary(OracleTextPart))/binary, 0, Height:32, StaticContract/binary>>,
+    %FullContract = <<0, Height:32, 2, L:32, (list_to_binary(OracleTextPart))/binary, StaticContract/binary>>,
+    FullContract = <<22, 2, L:32, (list_to_binary(OracleTextPart))/binary, StaticContract/binary>>,
     CH = hash:doit(FullContract),
     CID = hash:doit(<<CH/binary,
                       Source/binary,
