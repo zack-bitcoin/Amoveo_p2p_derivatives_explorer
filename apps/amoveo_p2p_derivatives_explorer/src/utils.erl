@@ -2,22 +2,30 @@
 -export([cron_job/2, off/0, server_url/1, talk/1,
          trade_id/2, trade_id/1, market_id/1]).
 
--define(TestMode, false).
+%-define(TestMode, false).
 -include("records.hrl").
+
+test_mode() ->
+    case application:get_env(amoveo_p2p_derivatives_explorer, test_mode) of
+        {ok, B} -> B;
+        _ -> false
+    end.
 
 server_url(T) ->
     L = case T of
           internal -> "1";
           external -> "0"
       end,
+    TM = test_mode(),
     if 
-        ?TestMode -> "http://127.0.0.1:301"++L;
+        TM -> "http://127.0.0.1:301"++L;
         true -> "http://127.0.0.1:808"++L
     end.
 talk(X) ->
+    TM = test_mode(),
     Port = 
         if
-            ?TestMode -> 3011;
+            TM -> 3011;
             true -> 8081
         end,
     talker:talk(X, {{127,0,0,1}, Port}).

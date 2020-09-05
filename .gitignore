@@ -18,6 +18,7 @@ include/
 nosetests.xml
 pip-selfcheck.json
 config/*/sys.config
+config/sys.config
 man
 compile_commands.json
 deps/*
