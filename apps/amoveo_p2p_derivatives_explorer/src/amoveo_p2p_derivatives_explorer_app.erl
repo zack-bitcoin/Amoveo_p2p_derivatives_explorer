@@ -6,6 +6,7 @@ start(_StartType, _StartArgs) ->
     start_http(),
     swap_history:garbage_cron(),
     swap_books:garbage_cron(),
+    spawn(fun() -> scalar_contracts:cron() end),
     amoveo_p2p_derivatives_explorer_sup:start_link().
 stop(_State) ->
     ok.

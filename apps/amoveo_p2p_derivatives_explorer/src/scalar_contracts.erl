@@ -1,7 +1,8 @@
 -module(scalar_contracts).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-        add/3, add/5, read_contract/1]).
+         add/3, add/5, read_contract/1,
+         cron/0]).
 
 %-record(c, {string, max_price, oracle_start_height}).
 
@@ -43,8 +44,14 @@ handle_cast({add, CID, Text, Height, MaxPrice}, X) ->
                 now = Now},
     X2 = dict:store(CID, C, X),
     {noreply, X2};
+handle_cast(backup, X) -> 
+    db:save(?LOC, X),
+    {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, CID}, _From, X) -> 
+io:fwrite("scalar contracts cid is "),
+io:fwrite(packer:pack(CID)),
+io:fwrite("\n"),
     {reply, dict:find(CID, X), X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
@@ -61,6 +68,13 @@ cid_maker(Text, Height, MaxPrice, Source, SourceType) ->
     %FullContract = <<0, Height:32, 2, L:32, (list_to_binary(OracleTextPart))/binary, StaticContract/binary>>,
     FullContract = <<22, 2, L:32, (list_to_binary(OracleTextPart))/binary, StaticContract/binary>>,
     CH = hash:doit(FullContract),
+    io:fwrite("scalar contracts \n"),
+    io:fwrite(packer:pack(FullContract)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack(CH)),
+    io:fwrite("\n"),
+    io:fwrite(packer:pack([Source, SourceType])),
+    io:fwrite("\n"),
     CID = hash:doit(<<CH/binary,
                       Source/binary,
                       2:16,
@@ -75,8 +89,14 @@ add(Text, Height, MaxPrice) ->
     CID = cid_maker(Text, Height, MaxPrice),
     gen_server:cast(?MODULE, {add, CID, Text, Height, MaxPrice}),
     CID.
+backup() ->
+    gen_server:cast(?MODULE, backup).
 read_contract(<<0:256>>) -> 
     true;
 read_contract(CID) ->
     gen_server:call(?MODULE, {check, CID}).
     
+cron() ->
+    timer:sleep(30000),
+    backup(),
+    cron().
