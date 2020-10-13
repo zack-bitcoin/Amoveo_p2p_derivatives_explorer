@@ -97,6 +97,6 @@ read_contract(CID) ->
     gen_server:call(?MODULE, {check, CID}).
     
 cron() ->
-    timer:sleep(30000),
+    timer:sleep(60000),
     backup(),
     cron().
