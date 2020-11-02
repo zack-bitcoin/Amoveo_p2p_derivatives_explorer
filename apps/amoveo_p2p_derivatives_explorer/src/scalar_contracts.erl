@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
          add/3, add/5, read_contract/1,
+         clean/0,
          cron/0]).
 
 %-record(c, {string, max_price, oracle_start_height}).
@@ -44,9 +45,16 @@ handle_cast({add, CID, Text, Height, MaxPrice}, X) ->
                 now = Now},
     X2 = dict:store(CID, C, X),
     {noreply, X2};
+handle_cast({remove, CID}, X) ->
+    {noreply, dict:erase(CID, X)};
 handle_cast(backup, X) -> 
     db:save(?LOC, X),
     {noreply, X};
+%handle_cast({update, X}, _) ->
+%    {noreply, X};
+%handle_cast(clean, X) ->
+%    X2 = clean_internal(X),
+%    {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({check, CID}, _From, X) -> 
 io:fwrite("scalar contracts cid is "),
@@ -55,9 +63,61 @@ io:fwrite("\n"),
     {reply, dict:find(CID, X), X};
 handle_call(_, _From, X) -> {reply, X, X}.
 
+clean() ->
+    IN = utils:server_url(internal),
+    {ok, H1} = talker:talk({height}, IN),
+    {ok, H2} = talker:talk({height, 1}, IN),
+    if
+        H1 < 130000 -> 
+            io:fwrite("need to sync the full node first before cleaning scalar contracts");
+        not(H1 == H2) ->
+            io:fwrite("need to sync the blocks in the full node first before syncing scalar contracts.");
+        true ->
+            D = gen_server:call(?MODULE, read_dict),
+            clean_internal(D)
+            %gen_server:cast(?MODULE, {update, D2})
+    end.
+clean_internal(D) ->
+    Ks = dict:fetch_keys(D),
+    clean_internal2(D, Ks).
+clean_internal2(_, []) -> ok;
+clean_internal2(D, [K|T]) ->
+    A = dict:fetch(K, D),
+    #scalar{
+             text = Question,
+             now = Then,
+             height = Start
+           } = A,
+    FN = utils:server_url(external),
+    IN = utils:server_url(internal),
+    {ok, Contract} = talker:talk({contracts, K}, FN),
+    %and this contract was not created on-chain
+    B1 = (Contract == empty),
+    Now = erlang:timestamp(),
+    DiffSeconds = 
+        timer:now_diff(Now, Then) / 1000000,
+    %if more than 100 minutes passed,
+    B2 = DiffSeconds > (60*100),
+    %and we aren't storing any open offer for this.
+    B3 = not(swap_books:using_contract(K)),
+    QH = hash:doit(Question),
+    OID = hash:doit(<<Start:32,0:32,0:32,QH/binary>>),
+    {ok, Oracle} = talker:talk({oracle, OID}, IN),
+    %if this oracle was already posted on-chain.
+    B4 = not(Oracle == 0),
+    if
+        (B1 and B2 and B3) or
+        (not(B1) and B4) -> 
+            gen_server:cast(?MODULE, {remove, K});
+        true -> ok
+    end,
+    clean_internal2(D, T).
+
+    
+
 cid_maker(Text, Height, MaxPrice) ->
     cid_maker(Text, Height, MaxPrice, <<0:256>>, 0).
-cid_maker(Text, Height, MaxPrice, Source, SourceType) ->
+cid_maker(Text, _Height, MaxPrice, Source, SourceType) ->
     true = is_binary(Text),
     StaticContract = base64:decode(
         "bpYZNRc5AzAyj4cUGIYWjDpGFBRHFHBxSG8AAAAAAXgAAAAAAngWAAAAAAN4gxSDFhSDFhSDFKyHAAAAAAJ5jBWGhgAAAAABeQAAAAADeYw6RhQUAgAAAAEwRxSQjIcWFBYCAAAAIGRuan/EdSKkhbAp0OEF6cQDv9x9li1vx5O6vqNMm3KlcUiGKIYoO0ZHDUiNhxYUAgAAAAEBO0ZHDUiEAAAAAAN5FoIA/////wAAAAADeTMWgoiMBAPo"),
@@ -99,4 +159,5 @@ read_contract(CID) ->
 cron() ->
     timer:sleep(60000),
     backup(),
+    spawn(fun() -> clean() end),
     cron().

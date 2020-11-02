@@ -1,7 +1,7 @@
 -module(swap_books).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-         add/9, read/1, markets/0, garbage_cron/0
+         add/9, read/1, markets/0, garbage_cron/0, using_contract/1
 ]).
 
 %this is for storing the current order books for all the markets of swap offers.
@@ -62,7 +62,26 @@ handle_call(markets, _From, X) ->
           end, 
           dict:fetch_keys(X)),
     {reply, Y, X};
+handle_call({using_contract, CID}, _From, X) ->
+    %checks if we are using this contract. scans all the markets.
+    K = dict:fetch_keys(X),
+    B = using_contract_internal(CID, X, K),
+    {reply, B, X};
 handle_call(_, _From, X) -> {reply, X, X}.
+
+using_contract_internal(_, _, []) ->
+    false;
+using_contract_internal(CID, X, [H|T]) ->
+    M = dict:fetch(H, X),
+    if
+        M#market.cid1 == CID -> true;
+        M#market.cid2 == CID -> true;
+        true -> 
+            using_contract_internal(CID, X, T)
+    end.
+
+using_contract(X) ->
+    gen_server:call(?MODULE, {using_contract, X}).
 
 add(MID, TID, Price, Amount, Nonce, CID1, Type1, CID2, Type2) ->
     S = new_order(TID, Price, Amount),

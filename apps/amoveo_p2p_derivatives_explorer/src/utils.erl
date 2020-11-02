@@ -2,7 +2,6 @@
 -export([cron_job/2, off/0, server_url/1, talk/1,
          trade_id/2, trade_id/1, market_id/1]).
 
-%-define(TestMode, false).
 -include("records.hrl").
 
 test_mode() ->
