@@ -92,7 +92,7 @@ clean_internal2(D, [K|T]) ->
     IN = utils:server_url(internal),
     {ok, Contract} = talker:talk({contracts, K}, FN),
     %and this contract was not created on-chain
-    B1 = (Contract == empty),
+    B1 = (Contract == 0),
     Now = erlang:timestamp(),
     DiffSeconds = 
         timer:now_diff(Now, Then) / 1000000,
