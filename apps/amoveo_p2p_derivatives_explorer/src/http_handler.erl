@@ -25,14 +25,14 @@ doit({add, SwapOffer, SecondOffer}) ->%TODO, add 2nd offer to sell winnings. sto
     TID = utils:trade_id(S),
     true = swap_verify:doit(TID, SwapOffer),
     true = 2000 > size(term_to_binary(SecondOffer)),
-    #swap_offer{
-                 amount1 = Amount1,
-                 amount2 = Amount2,
-                 cid1 = CID1,
-                 type1 = Type1,
-                 cid2 = CID2,
-                 type2 = Type2
-               } = S,
+    #swap_offer
+        {amount1 = Amount1,
+         amount2 = Amount2,
+         cid1 = CID1,
+         type1 = Type1,
+         cid2 = CID2,
+         type2 = Type2
+        } = S,
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
     MID = utils:market_id(S),
@@ -53,6 +53,8 @@ doit({add, 3, Text, Height, MaxPrice, Source, SourceType}) ->
 doit({add, 3, Text, Height, MaxPrice}) ->
     CID = scalar_contracts:add(Text, Height, MaxPrice),
     {ok, CID};
+doit({contracts}) ->
+    {ok, scalar_contracts:keys()};
 doit({read, 3, CID}) ->
     case binary_contracts:read_contract(CID) of
         error -> 
