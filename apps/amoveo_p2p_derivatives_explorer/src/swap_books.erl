@@ -149,7 +149,7 @@ merge(S, [H|T]) ->
 garbage_cron() ->
     timer:sleep(?cron),
     spawn(fun() ->
-                  garbage(),
+                  garbage()
           end),
     spawn(fun() ->
                   garbage_cron()

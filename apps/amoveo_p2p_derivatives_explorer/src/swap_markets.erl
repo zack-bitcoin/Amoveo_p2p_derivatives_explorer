@@ -28,7 +28,7 @@ refresh() -> gen_server:cast(?MODULE, refresh).
 cron() ->
     timer:sleep(5000),
     spawn(fun() ->
-                  refresh(),
+                  refresh()
           end),
     spawn(fun() ->
                   cron()
