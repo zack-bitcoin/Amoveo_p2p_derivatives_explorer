@@ -101,8 +101,15 @@ garbage2([MID|T], D) ->
     Market = dict:fetch(MID, D),
     Orders = Market#market.orders,
     Orders2 = garbage_orders(Orders, MID),
-    Market2 = Market#market{orders = Orders2},
-    D2 = dict:store(MID, Market2, D),
+    D2 = if
+             ([] == Orders2) ->
+                 dict:erase(MID, D);
+             true ->
+                 Market2 = 
+                     Market#market{
+                       orders = Orders2},
+                 dict:store(MID, Market2, D)
+         end,
     garbage2(T, D2).
 garbage_orders([], _) -> [];
 garbage_orders([H|T], MID) -> 
@@ -140,11 +147,15 @@ merge(S, [H|T]) ->
     
 
 garbage_cron() ->
+    timer:sleep(?cron),
     spawn(fun() ->
-                  timer:sleep(?cron),
                   garbage(),
+          end),
+    spawn(fun() ->
                   garbage_cron()
           end).
+    
+
 
 re_absorb_cron(SignedOffer) ->
     FN = utils:server_url(external),

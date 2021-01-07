@@ -3,7 +3,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 -export([read/1, add/3, remove/1]).
 
-%for storing the entire data of swap offers, and oracles used to settle them.
+%for storing the entire data of swap offers
 
 %-record(swap_offer, {
 %          acc1, start_limit, end_limit, salt,

@@ -26,9 +26,11 @@ read() -> gen_server:call(?MODULE, read).
 refresh() -> gen_server:cast(?MODULE, refresh).
 
 cron() ->
+    timer:sleep(5000),
     spawn(fun() ->
-                  timer:sleep(5000),
                   refresh(),
+          end),
+    spawn(fun() ->
                   cron()
           end).
     
