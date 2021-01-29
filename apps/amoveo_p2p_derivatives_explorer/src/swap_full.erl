@@ -11,6 +11,11 @@
 %          amount2, cid2, type2, %this is what acc2 gives.
 %          fee1, %what acc1 pays in fees
 %          fee2}).
+%-record(swap_offer2, {
+%          acc1, start_limit, end_limit,
+%          cid1, type1, amount1, 
+%          cid2, type2, amount2,
+%          salt, start_nonce, parts}).
 
 -define(LOC, "swap_full.db").
 

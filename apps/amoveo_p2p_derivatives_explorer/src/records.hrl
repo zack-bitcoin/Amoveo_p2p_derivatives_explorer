@@ -1,10 +1,16 @@
 -record(swap_tx, {from, offer, fee}).
+-record(swap_tx2, {from, nonce, fee, offer, match_parts}).
 -record(swap_offer, {
           acc1, start_limit, end_limit, salt,
           amount1, cid1, type1, %this is what acc1 gives.
           amount2, cid2, type2, %this is what acc2 gives.
           fee1, %what acc1 pays in fees
           nonce}).
+-record(swap_offer2, {
+          acc1, start_limit, end_limit,
+          cid1, type1, amount1, 
+          cid2, type2, amount2,
+          salt, start_nonce, parts}).
 -record(acc, {balance = 0, %amount of money you have
 	      nonce = 0, %increments with every tx you put on the chain. 
 	      pubkey = <<>>,

@@ -18,21 +18,42 @@ handle(Req, State) ->
     {ok, Req4, State}.
 doit({test}) -> {ok, "success"};
 
-doit({add, SwapOffer, SecondOffer}) ->%TODO, add 2nd offer to sell winnings. store it in the swap_full.
+doit({add, SwapOffer, SecondOffer}) ->
     %gives the server a new swap offer.
     io:fwrite("http handler swap add start \n"),
     S = element(2, SwapOffer),
     TID = utils:trade_id(S),
     true = swap_verify:doit(TID, SwapOffer),
     true = 2000 > size(term_to_binary(SecondOffer)),
-    #swap_offer
-        {amount1 = Amount1,
-         amount2 = Amount2,
-         cid1 = CID1,
-         type1 = Type1,
-         cid2 = CID2,
-         type2 = Type2
-        } = S,
+    {Amount1, Amount2,
+     CID1, Type1,
+     CID2, Type2} = 
+        case S of
+            #swap_offer{} ->
+                #swap_offer
+                    {amount1 = Amount10,
+                     amount2 = Amount20,
+                     cid1 = CID10,
+                     type1 = Type10,
+                     cid2 = CID20,
+                     type2 = Type20
+                    } = S,
+                {Amount10, Amount20,
+                 CID10, Type10,
+                 CID20, Type20};
+            #swap_offer2{} ->
+                #swap_offer2
+                    {amount1 = Amount11,
+                     amount2 = Amount21,
+                     cid1 = CID11,
+                     type1 = Type11,
+                     cid2 = CID21,
+                     type2 = Type21
+                    } = S,
+                {Amount11, Amount21,
+                 CID11, Type11,
+                 CID21, Type21}
+        end,
     <<Max:32>> = <<-1:32>>,
     Price = Amount1 * Max div Amount2,
     MID = utils:market_id(S),

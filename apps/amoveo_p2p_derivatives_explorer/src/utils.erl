@@ -1,6 +1,6 @@
 -module(utils).
 -export([cron_job/2, off/0, server_url/1, talk/1,
-         trade_id/2, trade_id/1, market_id/1]).
+         trade_id/1, market_id/1]).
 
 -include("records.hrl").
 
@@ -46,7 +46,13 @@ off() ->
 trade_id(Salt, Pub) ->
     hash:doit(<<Pub/binary,
                 Salt/binary>>).
-trade_id(SO) ->
+trade_id(SO) when is_record(SO, swap_offer2)->
+    #swap_offer2{
+          salt = Salt,
+          acc1 = Acc
+         } = SO,
+    trade_id(Salt, Acc);
+trade_id(SO) when is_record(SO, swap_offer)->
     #swap_offer{
           salt = Salt,
           acc1 = Acc

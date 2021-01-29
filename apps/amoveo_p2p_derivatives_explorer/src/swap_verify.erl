@@ -2,6 +2,7 @@
 -export([doit/2, keep_longer/3]).
 
 -include("records.hrl").
+-record(trade, {nonce, value}).
 -define(verbose, true).
 
 doit(TID, S) ->
@@ -9,18 +10,32 @@ doit(TID, S) ->
     {ok, Height} = talker:talk({height}, FN),
     doit(TID, S, Height).
 doit(TID, S, Height) ->
-    FN = utils:server_url(external),
-    FNL = utils:server_url(internal),
+    %FN = utils:server_url(external),
+    %%FNL = utils:server_url(internal),
 
     Offer = element(2, S),
-    #swap_offer{
-                 start_limit = SL,
-                 fee1 = Fee1,
-                 amount1 = Amount1,
-                 cid1 = CID1,
-                 cid2 = CID2,
-                 acc1 = Acc1
-               } = Offer,
+    {SL, Fee1, Amount1, CID1, CID2, Acc1} =
+        case Offer of
+            #swap_offer{
+                     start_limit = SL0,
+                     fee1 = Fee10,
+                     amount1 = Amount10,
+                     cid1 = CID10,
+                     cid2 = CID20,
+                     acc1 = Acc10
+                    } ->
+                {SL0, Fee10, Amount10, 
+                 CID10, CID20, Acc10};
+            #swap_offer2{
+                  start_limit = SL1,
+                  amount1 = Amount11,
+                  cid1 = CID11,
+                  cid2 = CID21,
+                  acc1 = Acc11
+                 }  -> 
+                {SL1, 0, Amount11, CID11, CID21, Acc11}
+        end,
+                
     B1 = sign:verify_sig(Offer, element(3, S), Acc1),
 
     %check acc1 is putting some minimum amount into it.
@@ -48,13 +63,13 @@ doit(TID, S, Height) ->
         true -> keep_longer(Offer, Height, TID)
     end.
 
-keep_longer(Offer, Height, TID) ->
+keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer) ->
     FNL = utils:server_url(internal),
     FN = utils:server_url(external),
     #swap_offer{
              end_limit = EL,
              amount1 = Amount1,
-             amount2 = Amount2,
+                 %amount2 = Amount2,
              salt  = Salt,
              acc1 = Acc1,
              cid1 = CID1,
@@ -92,7 +107,6 @@ keep_longer(Offer, Height, TID) ->
     %check that the trade id isn't already consumed
     B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
 
-    %TODO, check that the swap isn't already in the tx pool.
     {ok, Txs} = talker:talk({txs}, FN),
     B5 = no_repeats(Acc1, Salt, Txs),
 
@@ -108,7 +122,41 @@ keep_longer(Offer, Height, TID) ->
             false;
         true -> 
             true
+    end;
+keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
+    FNL = utils:server_url(internal),
+    %FN = utils:server_url(external),
+    #swap_offer2{
+                  end_limit = EL,
+                  start_nonce = SN,
+                  parts = Parts
+                } = Offer,
+    %check that it isn't expired.
+    B2 = (Height =< EL),
+    %check that the trade id isn't already consumed
+    B4 = case talker:talk({trade, TID}, FNL) of
+             {ok, 0} -> true;
+             {ok, Trade} ->
+                 #trade{value = V} = Trade,
+                 V < (SN + Parts)
+         end,
+    %B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
+    B6 = B2 and B4,
+    if
+        (?verbose and not(B6)) ->
+            io:fwrite(packer:pack(swap_full:read(TID))),
+            io:fwrite("\n"),
+            io:fwrite(packer:pack([B2, B4])),
+            io:fwrite("\n"),
+            false;
+        not(B6) ->
+            false;
+        true -> 
+            true
     end.
+            
+
+    
     
 no_repeats(_, _, []) -> true;
 no_repeats(Acc, Salt, 
