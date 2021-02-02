@@ -59,7 +59,18 @@ trade_id(SO) when is_record(SO, swap_offer)->
          } = SO,
     trade_id(Salt, Acc).
              
-market_id(S) ->
+market_id(S) when is_record(S, swap_offer2) ->
+    #swap_offer2{
+    cid1 = CID1,
+    type1 = T1,
+    cid2 = CID2,
+    type2 = T2
+   } = S,
+    hash:doit(<<CID1/binary,
+                T1:32,
+                CID2/binary,
+                T2:32>>);
+market_id(S) when is_record(S, swap_offer) ->
     #swap_offer{
     cid1 = CID1,
     type1 = T1,
