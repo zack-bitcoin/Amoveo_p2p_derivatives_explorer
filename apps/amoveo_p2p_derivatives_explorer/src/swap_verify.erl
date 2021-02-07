@@ -129,10 +129,33 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
     #swap_offer2{
                   end_limit = EL,
                   start_nonce = SN,
-                  parts = Parts
+                  parts = Parts,
+                  acc1 = Acc1,
+                  amount1 = Amount1,
+                  type1 = Type1,
+                  cid1 = CID1
                 } = Offer,
     %check that it isn't expired.
     B2 = (Height =< EL),
+    %balance check
+    %{ok, [_, BlockHash]} = talker:talk({top, 1}, FNL),
+    B3 = case CID1 of
+             <<0:256>> ->
+                 {ok, Acc} = talker:talk({account, Acc1}, FNL),
+                 if
+                     Acc == 0 -> false;
+                     true ->
+                         (Acc#acc.balance >= Amount1)
+                 end;
+             _ ->
+                 {ok, SubAcc} = talker:talk({sub_account, Acc1, CID1, Type1}, FNL),
+                 if
+                     SubAcc == 0 -> false;
+                     true ->
+                         (SubAcc#sub_acc.balance >= Amount1)
+                 end
+         end,
+
     %check that the trade id isn't already consumed
     B4 = case talker:talk({trade, TID}, FNL) of
              {ok, 0} -> true;
@@ -141,7 +164,7 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
                  V < (SN + Parts)
          end,
     %B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
-    B6 = B2 and B4,
+    B6 = B2 and B3 and B4,
     if
         (?verbose and not(B6)) ->
             io:fwrite(packer:pack(swap_full:read(TID))),
