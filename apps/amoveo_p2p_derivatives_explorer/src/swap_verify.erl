@@ -147,13 +147,13 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
                      true ->
                          (Acc#acc.balance >= Amount1)
                  end;
-             _ ->
-                 {ok, SubAcc} = talker:talk({sub_account, Acc1, CID1, Type1}, FNL),
-                 if
-                     SubAcc == 0 -> false;
-                     true ->
-                         (SubAcc#sub_acc.balance >= Amount1)
-                 end
+             _ -> true
+                 %{ok, SubAcc} = talker:talk({sub_account, Acc1, CID1, Type1}, FNL),
+                 %if
+                 %    SubAcc == 0 -> false;
+                 %    true ->
+                 %        (SubAcc#sub_acc.balance >= Amount1)
+                 %end
          end,
 
     %check that the trade id isn't already consumed
@@ -169,7 +169,7 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
         (?verbose and not(B6)) ->
             io:fwrite(packer:pack(swap_full:read(TID))),
             io:fwrite("\n"),
-            io:fwrite(packer:pack([B2, B4])),
+            io:fwrite(packer:pack([B2, B3, B4])),
             io:fwrite("\n"),
             false;
         not(B6) ->
