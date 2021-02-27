@@ -10,7 +10,9 @@ turn it on, then open this in a browser: http://localhost:8090/main.html
 Turning it on and off
 =======
 
-First make sure you have an Amoveo node running, and that the keys are unlocked on that node.
+First make sure you have an Amoveo node running and fully synced, and that the keys are unlocked on that node.
+
+If you need to resync your full node, be sure to turn off this p2p_derivatives tool first.
 
 ```
 sh start.sh
