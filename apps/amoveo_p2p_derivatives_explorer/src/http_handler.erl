@@ -74,13 +74,20 @@ doit({add, 3, Text, Height, MaxPrice, Source, SourceType}) ->
 doit({add, 3, Text, Height, MaxPrice}) ->
     CID = scalar_contracts:add(Text, Height, MaxPrice),
     {ok, CID};
+doit({add, 4, BuyVeoContract}) ->
+    CID = buy_veo_orders:add(BuyVeoContract),
+    {ok, CID};
 doit({contracts}) ->
     {ok, scalar_contracts:keys()};
 doit({read, 3, CID}) ->
     case binary_contracts:read_contract(CID) of
         error -> 
             case scalar_contracts:read_contract(CID) of
-                error -> {ok, 0};
+                error ->
+                    case buy_veo_orders:read_contract(CID) of
+                        error -> {ok, 0};
+                        Z -> Z
+                    end;
                 Y -> Y
             end;
         X -> X

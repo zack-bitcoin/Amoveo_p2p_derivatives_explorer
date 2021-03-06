@@ -8,7 +8,8 @@
                swap_full,
                swap_markets,
                scalar_contracts,
-               binary_contracts
+               binary_contracts,
+               buy_veo_orders
               ]).
 %active_oracles, oracles, channel_offers_ram, channel_offers_hd, volume_order, close_offers]).
 start_link() ->
