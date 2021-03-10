@@ -34,10 +34,18 @@ handle_cast({add, C1}, X) ->
          },
     CID = C#contract.cid,
     X2 = case dict:find(CID, X) of
-             empty ->
+             error ->
+                 io:fwrite("adding contract\n"),
                  dict:store(CID, C, X);
-             _ -> X
+             _ -> 
+                 io:fwrite(dict:find(CID, X)),
+                 io:fwrite("\n"),
+                 io:fwrite("not adding contract\n"),
+                 X
          end,
+    io:fwrite("in buy veo orders, added contract\n"),
+    io:fwrite(packer:pack(CID)),
+    io:fwrite("\n"),
     {noreply, X2};
 handle_cast(backup, X) -> 
     db:save(?LOC, X),

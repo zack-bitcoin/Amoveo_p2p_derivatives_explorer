@@ -18,6 +18,19 @@ handle(Req, State) ->
     {ok, Req4, State}.
 doit({test}) -> {ok, "success"};
 
+doit({add, 2, Text, Height}) ->
+    CID = binary_contracts:add(Text, Height),
+    {ok, CID};
+doit({add, 3, Text, Height, MaxPrice, Source, SourceType}) ->
+    CID = scalar_contracts:add(Text, Height, MaxPrice, Source, SourceType),
+    {ok, CID};
+doit({add, 3, Text, Height, MaxPrice}) ->
+    CID = scalar_contracts:add(Text, Height, MaxPrice),
+    {ok, CID};
+doit({add, 4, BuyVeoContract}) ->
+    io:fwrite("http handler adding buy veo contract \n"),
+    buy_veo_orders:add(BuyVeoContract),
+    {ok, 0};
 doit({add, SwapOffer, SecondOffer}) ->
     %gives the server a new swap offer.
     io:fwrite("http handler swap add start \n"),
@@ -64,18 +77,6 @@ doit({add, SwapOffer, SecondOffer}) ->
     {ok, 0};
 doit({add, 2, Text, Height, Source, SourceType}) ->
     CID = binary_contracts:add(Text, Height, Source, SourceType),
-    {ok, CID};
-doit({add, 2, Text, Height}) ->
-    CID = binary_contracts:add(Text, Height),
-    {ok, CID};
-doit({add, 3, Text, Height, MaxPrice, Source, SourceType}) ->
-    CID = scalar_contracts:add(Text, Height, MaxPrice, Source, SourceType),
-    {ok, CID};
-doit({add, 3, Text, Height, MaxPrice}) ->
-    CID = scalar_contracts:add(Text, Height, MaxPrice),
-    {ok, CID};
-doit({add, 4, BuyVeoContract}) ->
-    CID = buy_veo_orders:add(BuyVeoContract),
     {ok, CID};
 doit({contracts}) ->
     {ok, scalar_contracts:keys()};
