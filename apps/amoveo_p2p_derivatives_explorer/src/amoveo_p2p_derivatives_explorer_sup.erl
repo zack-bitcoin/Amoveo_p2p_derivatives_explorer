@@ -14,7 +14,7 @@
 %active_oracles, oracles, channel_offers_ram, channel_offers_hd, volume_order, close_offers]).
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
-child_killer([]) -> [];
+child_killer([]) -> ok;
 child_killer([H|T]) -> 
     supervisor:terminate_child(amoveo_p2p_derivatives_explorer_sup, H),
     child_killer(T).
