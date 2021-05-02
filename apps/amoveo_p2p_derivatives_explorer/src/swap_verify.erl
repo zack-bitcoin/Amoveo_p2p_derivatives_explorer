@@ -39,13 +39,16 @@ doit(TID, S, Height) ->
     B1 = sign:verify_sig(Offer, element(3, S), Acc1),
 
     %check acc1 is putting some minimum amount into it.
-    B2 = Fee1 + Amount1 > 1000000,
+    %B2 = Fee1 + Amount1 > 1000000,
+    B2 = true,%Fee1 + Amount1 > 1000000,
 
     %check that we aren't already storing a trade with this id
     B4 = error == swap_full:read(TID),
 
     %check that the start height limit has already occured.
     B5 = (Height >= SL),
+    io:fwrite(packer:pack([Height, SL])),
+    io:fwrite("\n"),
 
     %TODO verify that all the contract ids are in the binary_contracts database. `binary_contracts:read(CID)`
     B6 = ((not(error == binary_contracts:read_contract(CID1))) 

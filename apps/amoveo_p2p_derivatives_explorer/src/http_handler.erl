@@ -34,6 +34,8 @@ doit({add, 4, BuyVeoContract}) ->
 doit({add, SwapOffer, SecondOffer}) ->
     %gives the server a new swap offer.
     io:fwrite("http handler swap add start \n"),
+    io:fwrite(packer:pack(SwapOffer)),
+    io:fwrite("\n"),
     S = element(2, SwapOffer),
     TID = utils:trade_id(S),
     true = swap_verify:doit(TID, SwapOffer),

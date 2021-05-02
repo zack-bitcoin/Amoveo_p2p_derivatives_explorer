@@ -116,6 +116,7 @@ cid_maker(Contract) ->
 
 clean() ->
     %TODO
+    %if the offer expired, or was canceled.
     ok.
 sync(_IP, _Port) ->
     %TODO
