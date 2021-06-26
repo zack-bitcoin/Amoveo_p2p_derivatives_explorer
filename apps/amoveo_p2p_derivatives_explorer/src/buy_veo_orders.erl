@@ -4,7 +4,7 @@
          add/1, read_contract/1, clean/0, 
          keys/0, sync/2, cron/0]).
 
--define(LOC, "buy_veo_orders.erl").
+-define(LOC, "buy_veo_orders.db").
 -record(contract, 
         {cid, source = <<0:256>>, 
          source_type = 0, choose_address_timeout,
@@ -85,20 +85,29 @@ cid_maker(Contract) ->
     {ok, CodeStatic} = file:read_file(PrivDir ++ "/buy_veo.fs"),
     {ok, CodeStatic2} = file:read_file(PrivDir ++ "/buy_veo_part2.fs"),
 
+    OSHS = integer_to_binary(OracleStartHeight),
+    io:fwrite(packer:pack([OracleStartHeight, OSHS, Blockchain, Amount, Ticker, Date])),
+    io:fwrite("\n"),
+        <<" int4 ", 
+          Amount/binary,
+          "\" .\" ">>,
+        <<" int4 ", 
+          Blockchain/binary,
+          "\" .\" ">>,
     ReusableSettings = 
         <<" int4 ", 
-          (integer_to_binary(OracleStartHeight))/binary, 
+          OSHS/binary, 
           " .\" ",
-          Blockchain,
+          Blockchain/binary,
           "\" .\" ",
-          Amount,
+          Amount/binary,
           "\" .\" ",
-          Ticker,
+          Ticker/binary,
           "\" .\" ",
-          Date, 
+          Date/binary, 
           "\" ">>,
     Settings = <<" int ",
-                 ChooseAddressTimeout,
+                 (integer_to_binary(ChooseAddressTimeout))/binary,
                  " ", 
                  ReusableSettings/binary,
                  " int 1 binary 32 ", 
@@ -135,7 +144,7 @@ sync(IP, Port) ->
         talker:talk(
           {contracts, 2},
           {IP, Port}),
-    sync_contracts(CIDS, {IP, Port}).
+    sync_contracts([hd(CIDS)], {IP, Port}).
 sync_contracts([], _) -> ok;
 sync_contracts([CID|T], Peer) -> 
     {ok, Contract} = 
