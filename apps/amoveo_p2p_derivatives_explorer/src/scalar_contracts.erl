@@ -58,6 +58,7 @@ handle_call({check, CID}, _From, X) ->
 handle_call(_, _From, X) -> {reply, X, X}.
 
 sync(IP, Port) ->
+    %talking to other server.
     {ok, CIDS} = 
         talker:talk(
           {contracts}, 

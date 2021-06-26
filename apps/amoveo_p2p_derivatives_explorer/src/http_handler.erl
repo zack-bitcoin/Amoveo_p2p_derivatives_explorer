@@ -88,6 +88,8 @@ doit({add, 2, Text, Height, Source, SourceType}) ->
     {ok, CID};
 doit({contracts}) ->
     {ok, scalar_contracts:keys()};
+doit({contracts, 2}) ->
+    {ok, buy_veo_orders:keys()};
 doit({read, 3, CID}) ->
     case binary_contracts:read_contract(CID) of
         error -> 

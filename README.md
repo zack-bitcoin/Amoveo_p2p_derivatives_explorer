@@ -40,6 +40,7 @@ Syncing smart contracts
 ============
 ```
 scalar_contracts:sync({159,89,87,58}, 8090).
+buy_veo_orders:sync({159,89,87,58}, 8090).
 ```
 
 this will pull all the oracle text, and what you need to settle the scalar contracts.

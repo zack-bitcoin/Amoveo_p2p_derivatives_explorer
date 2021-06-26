@@ -33,20 +33,28 @@ handle_cast({add, C1}, X) ->
           now = Now
          },
     CID = C#contract.cid,
-    X2 = case dict:find(CID, X) of
-             error ->
-                 io:fwrite("adding contract\n"),
-                 dict:store(CID, C, X);
-             _ -> 
-                 io:fwrite(dict:find(CID, X)),
-                 io:fwrite("\n"),
-                 io:fwrite("not adding contract\n"),
-                 X
-         end,
-    io:fwrite("in buy veo orders, added contract\n"),
-    io:fwrite(packer:pack(CID)),
-    io:fwrite("\n"),
-    {noreply, X2};
+    CID2 = cid_maker(C),
+    if 
+        (not(CID == CID2)) ->
+            io:fwrite("buy veo orders, cids don't match"),
+            {noreply, X};
+        true ->
+            
+            X2 = case dict:find(CID, X) of
+                     error ->
+                         io:fwrite("adding contract\n"),
+                         dict:store(CID, C, X);
+                     _ -> 
+                         io:fwrite(dict:find(CID, X)),
+                         io:fwrite("\n"),
+                         io:fwrite("not adding contract\n"),
+                         X
+                 end,
+            io:fwrite("in buy veo orders, added contract\n"),
+            io:fwrite(packer:pack(CID)),
+            io:fwrite("\n"),
+            {noreply, X2}
+    end;
 handle_cast(backup, X) -> 
     db:save(?LOC, X),
     {noreply, X};
@@ -118,10 +126,23 @@ clean() ->
     %TODO
     %if the offer expired, or was canceled.
     ok.
-sync(_IP, _Port) ->
+sync(IP, Port) ->
     %TODO
-    ok.
+    %add instructions to readme.
 
+%doit({contracts, 2}) ->
+    {ok, CIDS} = 
+        talker:talk(
+          {contracts, 2},
+          {IP, Port}),
+    sync_contracts(CIDS, {IP, Port}).
+sync_contracts([], _) -> ok;
+sync_contracts([CID|T], Peer) -> 
+    {ok, Contract} = 
+        talker:talk({read, 3, CID}, Peer),
+    add(Contract),
+    sync_contracts(T, Peer).
+   
 backup() ->
     gen_server:cast(?MODULE, backup).
 keys() ->
