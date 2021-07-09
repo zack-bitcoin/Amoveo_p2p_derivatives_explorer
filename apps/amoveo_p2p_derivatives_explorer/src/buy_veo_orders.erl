@@ -86,14 +86,6 @@ cid_maker(Contract) ->
     {ok, CodeStatic2} = file:read_file(PrivDir ++ "/buy_veo_part2.fs"),
 
     OSHS = integer_to_binary(OracleStartHeight),
-    io:fwrite(packer:pack([OracleStartHeight, OSHS, Blockchain, Amount, Ticker, Date])),
-    io:fwrite("\n"),
-        <<" int4 ", 
-          Amount/binary,
-          "\" .\" ">>,
-        <<" int4 ", 
-          Blockchain/binary,
-          "\" .\" ">>,
     ReusableSettings = 
         <<" int4 ", 
           OSHS/binary, 
