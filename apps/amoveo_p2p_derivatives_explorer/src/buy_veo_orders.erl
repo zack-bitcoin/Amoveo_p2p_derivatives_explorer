@@ -33,8 +33,8 @@ handle_cast({add, C1}, X) ->
           now = Now
          },
     CID = C#contract.cid,
-    %CID2 = cid_maker(C),
-    CID2 = CID,
+    CID2 = cid_maker(C),
+    %CID2 = CID,
     if 
         (not(CID == CID2)) ->
             io:fwrite("buy veo orders, cids don't match\n"),
