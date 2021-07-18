@@ -33,26 +33,26 @@ handle_cast({add, C1}, X) ->
           now = Now
          },
     CID = C#contract.cid,
-    CID2 = cid_maker(C),
+    %CID2 = cid_maker(C),
+    CID2 = CID,
     if 
         (not(CID == CID2)) ->
-            io:fwrite("buy veo orders, cids don't match"),
+            io:fwrite("buy veo orders, cids don't match\n"),
             {noreply, X};
         true ->
             
             X2 = case dict:find(CID, X) of
                      error ->
                          io:fwrite("adding contract\n"),
+                         io:fwrite(packer:pack(CID)),
+                         io:fwrite("\n"),
                          dict:store(CID, C, X);
                      _ -> 
-                         io:fwrite(dict:find(CID, X)),
-                         io:fwrite("\n"),
-                         io:fwrite("not adding contract\n"),
+                         %io:fwrite(dict:find(CID, X)),
+                         %io:fwrite("\n"),
+                         io:fwrite("not adding contract, id taken\n"),
                          X
                  end,
-            io:fwrite("in buy veo orders, added contract\n"),
-            io:fwrite(packer:pack(CID)),
-            io:fwrite("\n"),
             {noreply, X2}
     end;
 handle_cast(backup, X) -> 
@@ -136,7 +136,8 @@ sync(IP, Port) ->
         talker:talk(
           {contracts, 2},
           {IP, Port}),
-    sync_contracts([hd(CIDS)], {IP, Port}).
+    %sync_contracts([hd(CIDS)], {IP, Port}).
+    sync_contracts(CIDS, {IP, Port}).
 sync_contracts([], _) -> ok;
 sync_contracts([CID|T], Peer) -> 
     {ok, Contract} = 
@@ -148,6 +149,7 @@ backup() ->
     gen_server:cast(?MODULE, backup).
 keys() ->
     gen_server:call(?MODULE, keys).
+add(0) -> ok;
 add(Contract) when is_record(Contract, contract) ->
     %we can trust them to give the correct CID, because 256 bytes is too much space to find a collision, and because the light node can detect an incorrect cid from the contract data.
     %TODO, check the contract data is reasonably sized, and of the correct format.
