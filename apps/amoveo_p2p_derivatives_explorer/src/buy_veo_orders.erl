@@ -27,13 +27,13 @@ terminate(_, X) ->
     io:format("buy veo orders died!"), 
     ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({add, C1}, X) ->
+handle_cast({add, C1, CID2}, X) ->
     Now = erlang:timestamp(),
     C = C1#contract{
           now = Now
          },
     CID = C#contract.cid,
-    CID2 = cid_maker(C),
+    %CID2 = cid_maker(C),
     %CID2 = CID,
     if 
         (not(CID == CID2)) ->
@@ -153,7 +153,10 @@ add(0) -> ok;
 add(Contract) when is_record(Contract, contract) ->
     %we can trust them to give the correct CID, because 256 bytes is too much space to find a collision, and because the light node can detect an incorrect cid from the contract data.
     %TODO, check the contract data is reasonably sized, and of the correct format.
-    gen_server:cast(?MODULE, {add, Contract}).
+    CID2 = cid_maker(Contract),
+    gen_server:cast(?MODULE, {add, Contract, CID2}),
+    CID2.
+
 read_contract(CID) ->
     gen_server:call(?MODULE, {read_contract, CID}).
 

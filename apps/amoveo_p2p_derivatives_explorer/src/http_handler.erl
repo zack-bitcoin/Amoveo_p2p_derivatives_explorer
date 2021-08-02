@@ -35,8 +35,8 @@ doit({add, 3, Text, Height, MaxPrice}) ->
     {ok, CID};
 doit({add, 4, BuyVeoContract}) ->
     io:fwrite("http handler adding buy veo contract \n"),
-    buy_veo_orders:add(BuyVeoContract),
-    {ok, 0};
+    CID = buy_veo_orders:add(BuyVeoContract),
+    {ok, CID};
 doit({add, SwapOffer, SecondOffer}) ->
     %gives the server a new swap offer.
     io:fwrite("http handler swap add start \n"),

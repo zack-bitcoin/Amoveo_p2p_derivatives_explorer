@@ -94,13 +94,19 @@ garbage() ->
     gen_server:cast(?MODULE, garbage).
 
 garbage(D) ->
-    K = dict:fetch_keys(D),
-    garbage2(K, D).
-garbage2([], D) -> D;
-garbage2([MID|T], D) -> 
+    FN = utils:server_url(external),
+    X = talker:talk({height}, FN),
+    case X of
+        {ok, Height} ->
+            K = dict:fetch_keys(D),
+            garbage2(K, D, Height);
+        _ -> D
+    end.
+garbage2([], D, _) -> D;
+garbage2([MID|T], D, Height) -> 
     Market = dict:fetch(MID, D),
     Orders = Market#market.orders,
-    Orders2 = garbage_orders(Orders, MID),
+    Orders2 = garbage_orders(Orders, MID, Height),
     D2 = if
              ([] == Orders2) ->
                  dict:erase(MID, D);
@@ -110,15 +116,13 @@ garbage2([MID|T], D) ->
                        orders = Orders2},
                  dict:store(MID, Market2, D)
          end,
-    garbage2(T, D2).
-garbage_orders([], _) -> [];
-garbage_orders([H|T], MID) -> 
+    garbage2(T, D2, Height).
+garbage_orders([], _, _) -> [];
+garbage_orders([H|T], MID, Height) -> 
     TID = H#order.tid,
     F = case swap_full:read(TID) of
             error -> [];
             {ok, {S, Second}} ->
-                FN = utils:server_url(external),
-                {ok, Height} = talker:talk({height}, FN),
                 Offer = element(2, S),
                 B = swap_verify:keep_longer(Offer, Height, TID),
                 if 
@@ -133,7 +137,7 @@ garbage_orders([H|T], MID) ->
                         []
                 end
         end,
-    F ++ garbage_orders(T, MID).
+    F ++ garbage_orders(T, MID, Height).
 
 
 merge(S, []) -> [S];
