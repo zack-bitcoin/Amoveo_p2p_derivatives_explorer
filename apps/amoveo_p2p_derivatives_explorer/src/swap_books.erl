@@ -7,7 +7,7 @@
 %this is for storing the current order books for all the markets of swap offers.
 
 -define(LOC, "swap_books.db").
--define(cron, 1000).
+-define(cron, 1000).%for production we probably want this higher than 1 second.
 -include("records.hrl").
 
 -record(market, {nonce = 1, mid, cid1, type1, cid2, type2, orders}).

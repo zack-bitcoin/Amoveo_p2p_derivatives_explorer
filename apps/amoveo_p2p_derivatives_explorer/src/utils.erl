@@ -66,10 +66,11 @@ market_id(S) when is_record(S, swap_offer2) ->
     cid2 = CID2,
     type2 = T2
    } = S,
-    hash:doit(<<CID1/binary,
-                T1:32,
-                CID2/binary,
-                T2:32>>);
+    market_id(CID1, T1, CID2, T2);
+%    hash:doit(<<CID1/binary,
+%                T1:32,
+%                CID2/binary,
+%                T2:32>>);
 market_id(S) when is_record(S, swap_offer) ->
     #swap_offer{
     cid1 = CID1,
@@ -77,8 +78,28 @@ market_id(S) when is_record(S, swap_offer) ->
     cid2 = CID2,
     type2 = T2
    } = S,
-    hash:doit(<<CID1/binary,
-                T1:32,
-                CID2/binary,
-                T2:32>>).
+    market_id(CID1, T1, CID2, T2).
+%    hash:doit(<<CID1/binary,
+%                T1:32,
+%                CID2/binary,
+%                T2:32>>).
 
+%make_id(CID1, Type1, CID2, Type2) ->
+%    hash:doit(<<CID1/binary,
+%                T1:32,
+%                CID2/binary,
+%                T2:32>>);
+make_id(CID1, Type1, CID2, Type2) ->
+    <<N1:256>> = CID1,
+    <<N2:256>> = CID2,
+    if
+        ((N1+Type1) =< (N2+Type2)) ->
+            X = <<CID1/binary,
+                  CID2/binary,
+                  Type1:16,
+                  Type2:16>>,
+            %io:fwrite(base64:encode(X)),
+           hash:doit(X);
+        true ->
+            make_id(CID2, Type2, CID1, Type1)
+    end.
