@@ -120,6 +120,9 @@ doit({markets}) ->
     %X = swap_markets:read(),
     X = swap_books:markets(),
     {ok, X};
+doit({markets, 2}) ->
+    X = swap_books:markets2(),
+    {ok, X};
 
 %doit({oracle_list, 2}) ->
 %    {ok, active_oracles:read()};

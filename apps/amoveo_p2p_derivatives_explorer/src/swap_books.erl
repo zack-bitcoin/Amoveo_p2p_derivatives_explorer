@@ -1,7 +1,7 @@
 -module(swap_books).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-         add/9, read/1, markets/0, garbage_cron/0, using_contract/1
+         add/9, read/1, markets/0, markets2/0, garbage_cron/0, using_contract/1
 ]).
 
 %this is for storing the current order books for all the markets of swap offers.
@@ -54,6 +54,26 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call({read, MID}, _From, X) -> 
     Z = dict:find(MID, X),
     {reply, Z, X};
+handle_call(markets2, _From, X) ->
+    Y = lists:map(
+          fun(Z) ->
+                  {ok, Market} = dict:find(Z, X),
+                  Market#market{orders = 0},
+                  #market{cid1 = CID1, cid2 = CID2} = Market,
+                  T1 = scalar_contracts:read_contract(CID1),
+                  T2 = scalar_contracts:read_contract(CID2),
+                  R1 = case T1 of
+                           {ok, Text1} -> Text1;
+                           error -> ""
+                       end,
+                  R2 = case T2 of
+                           {ok, Text2} -> Text2;
+                           error -> ""
+                       end,
+                  {Market, R1, R2}
+          end, 
+          dict:fetch_keys(X)),
+    {reply, Y, X};
 handle_call(markets, _From, X) ->
     Y = lists:map(
           fun(Z) ->
@@ -90,6 +110,8 @@ read(ID) ->
     gen_server:call(?MODULE, {read, ID}).
 markets() ->
     gen_server:call(?MODULE, markets).
+markets2() ->
+    gen_server:call(?MODULE, markets2).
 garbage() ->
     gen_server:cast(?MODULE, garbage).
 
