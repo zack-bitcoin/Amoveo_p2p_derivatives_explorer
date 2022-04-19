@@ -64,11 +64,11 @@ handle_call(markets2, _From, X) ->
                   T2 = scalar_contracts:read_contract(CID2),
                   R1 = case T1 of
                            {ok, Text1} -> Text1;
-                           error -> ""
+                           _ -> ""
                        end,
                   R2 = case T2 of
                            {ok, Text2} -> Text2;
-                           error -> ""
+                           _ -> ""
                        end,
                   {Market, R1, R2}
           end, 
