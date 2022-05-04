@@ -1,7 +1,8 @@
 -module(swap_books).
 -behaviour(gen_server).
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2,
-         add/9, read/1, markets/0, markets2/0, garbage_cron/0, using_contract/1
+         add/9, read/1, markets/0, markets2/0, garbage_cron/0, using_contract/1,
+         garbage/0
 ]).
 
 %this is for storing the current order books for all the markets of swap offers.
@@ -47,8 +48,8 @@ handle_cast({add, MID, S, Nonce, CID1, Type1, CID2, Type2}, X) ->
          end,
     X2 = dict:store(MID, M2, X),
     {noreply, X2};
-handle_cast(garbage, X) -> 
-    X2 = garbage(X),
+handle_cast({garbage, Height}, X) -> 
+    X2 = garbage(X, Height),
     {noreply, X2};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({read, MID}, _From, X) -> 
@@ -113,17 +114,23 @@ markets() ->
 markets2() ->
     gen_server:call(?MODULE, markets2).
 garbage() ->
-    gen_server:cast(?MODULE, garbage).
-
-garbage(D) ->
     FN = utils:server_url(external),
     X = talker:talk({height}, FN),
     case X of
         {ok, Height} ->
-            K = dict:fetch_keys(D),
-            garbage2(K, D, Height);
-        _ -> D
+            gen_server:cast(?MODULE, {garbage, Height});
+        _ -> ok
     end.
+
+garbage(D, Height) ->
+%    FN = utils:server_url(external),
+%    X = talker:talk({height}, FN),
+%    case X of
+%        {ok, Height} ->
+    K = dict:fetch_keys(D),
+    garbage2(K, D, Height).
+%        _ -> D
+%    end.
 garbage2([], D, _) -> D;
 garbage2([MID|T], D, Height) -> 
     Market = dict:fetch(MID, D),
