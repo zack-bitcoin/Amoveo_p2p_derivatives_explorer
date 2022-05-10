@@ -59,7 +59,7 @@ handle_call(markets2, _From, X) ->
     Y = lists:map(
           fun(Z) ->
                   {ok, Market} = dict:find(Z, X),
-                  Market#market{orders = 0},
+                  %Market#market{orders = 0},
                   #market{cid1 = CID1, cid2 = CID2} = Market,
                   T1 = scalar_contracts:read_contract(CID1),
                   T2 = scalar_contracts:read_contract(CID2),
@@ -71,7 +71,8 @@ handle_call(markets2, _From, X) ->
                            {ok, Text2} -> Text2;
                            _ -> ""
                        end,
-                  {Market, R1, R2}
+                  {Market#market{orders = 0}, 
+                   R1, R2}
           end, 
           dict:fetch_keys(X)),
     {reply, Y, X};
