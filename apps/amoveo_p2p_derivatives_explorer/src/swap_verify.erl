@@ -117,6 +117,8 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer) ->
 
     B6 = B2 and B3 and B4 and B5,
     if
+        not(B4) ->
+            trade_accepted;
         (?verbose and not(B6)) ->
             io:fwrite(packer:pack(swap_full:read(TID))),
             io:fwrite("\n"),

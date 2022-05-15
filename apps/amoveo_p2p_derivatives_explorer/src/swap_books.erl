@@ -156,12 +156,14 @@ garbage_orders([H|T], MID, Height) ->
                 Offer = element(2, S),
                 B = swap_verify:keep_longer(Offer, Height, TID),
                 if 
-                    B -> [H];
+                    (B == true) -> [H];
                     true -> 
                         swap_history:remove(MID, TID),
-                        case Second of
-                            0 -> ok;
-                            _ -> re_absorb_cron(Second)
+                        case {Second, B} of
+                            {0, _} -> ok;
+                            {_, trade_accepted} -> 
+                                re_absorb_cron(Second);
+                            _ -> ok
                         end,
                         swap_full:remove(TID),
                         []
