@@ -159,11 +159,9 @@ garbage_orders([H|T], MID, Height) ->
                     (B == true) -> [H];
                     true -> 
                         swap_history:remove(MID, TID),
-                        case {Second, B} of
-                            {0, _} -> ok;
-                            {_, trade_accepted} -> 
-                                re_absorb_cron(Second);
-                            _ -> ok
+                        case Second of
+                            0 -> ok;
+                            _ -> re_absorb_cron(Second)
                         end,
                         swap_full:remove(TID),
                         []
