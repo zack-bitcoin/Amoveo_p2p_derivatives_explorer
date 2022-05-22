@@ -7,8 +7,9 @@
 
 %this is for storing the current order books for all the markets of swap offers.
 
+
 -define(LOC, "swap_books.db").
--define(cron, 1000).%for production we probably want this higher than 1 second.
+-define(cron, 60000).%for production we probably want this higher than 1 second.
 -include("records.hrl").
 
 -record(market, {nonce = 1, mid, cid1, type1, cid2, type2, orders}).
@@ -154,17 +155,23 @@ garbage_orders([H|T], MID, Height) ->
             error -> [];
             {ok, {S, Second}} ->
                 Offer = element(2, S),
-                B = swap_verify:keep_longer(Offer, Height, TID),
+                B = swap_verify:keep_longer(
+                      Offer, Height, TID),
                 if 
                     (B == true) -> [H];
+                    (B == already_accepted) ->
+                        
+                        http_handler:doit({add, Second, 0});
                     true -> 
-                        swap_history:remove(MID, TID),
-                        case Second of
-                            0 -> ok;
-                            _ -> re_absorb_cron(Second)
-                        end,
-                        swap_full:remove(TID),
                         []
+%                        swap_history:remove(MID, TID),
+%                        case Second of
+%                            0 -> ok;
+%                            _ -> re_absorb_cron(
+%                                   Second, Height)
+%                        end,
+%                        swap_full:remove(TID),
+%                        []
                 end
         end,
     F ++ garbage_orders(T, MID, Height).
@@ -191,12 +198,44 @@ garbage_cron() ->
     
 
 
-re_absorb_cron(SignedOffer) ->
+re_absorb_cron(SignedOffer, Height) ->
     FN = utils:server_url(external),
-    {ok, Height} = talker:talk({height}, FN),
     spawn(fun()->
-                  re_absorb_cron2(SignedOffer, Height)
+                  re_absorb_cron2(
+                    SignedOffer, Height)
           end).
+re_absorb_cron_per_block(SignedOffer, Start, Recent) ->
+    %If the first offer is accepted, then we add the second to the pool.
+    FN = utils:server_url(external),
+    {ok, HeightNow} = talker:talk({height}, FN),
+    Offer = element(2, SignedOffer),
+    TID = utils:trade_id(Offer),
+    if
+        (HeightNow > (Start + 2)) ->
+            %out of time. try adding one last time.
+            http_handler:doit({add, SignedOffer, 0});
+            %swap_verify:doit(TID, SignedOffer, 
+            %                 HeightNow);
+        (HeightNow == Recent) ->
+            %wait longer for the next block.
+            timer:sleep(?cron),
+            re_absorb_cron_per_block(
+              SignedOffer, Start, Recent);
+        (HeightNow > Recent) ->
+            %maybe we can add it now.
+            B = swap_verify:keep_longer(Offer, Height2, TID),
+            if
+                B ->
+                    http_handler:doit({add, SignedOffer, 0});
+                   % swap_verify:doit(
+                   %   TID, SignedOffer, HeightNow);
+                true ->
+                    timer:sleep(?cron),
+                    re_absorb_cron_per_block(
+                      SignedOffer, Start, HeightNow)
+            end
+    end.
+
 re_absorb_cron2(SignedOffer, Height1) ->
     %for 2 blocks, keep trying to re-add this offer to the order book.
     io:fwrite("re absorb cron\n"),

@@ -1,5 +1,5 @@
 -module(swap_verify).
--export([doit/2, keep_longer/3]).
+-export([doit/2, keep_longer/3, doit/3]).
 
 -include("records.hrl").
 -record(trade, {nonce, value}).
@@ -68,68 +68,70 @@ doit(TID, S, Height) ->
         true -> keep_longer(Offer, Height, TID)
     end.
 
-keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer) ->
-    FNL = utils:server_url(internal),
-    FN = utils:server_url(external),
-    #swap_offer{
-             end_limit = EL,
-             amount1 = Amount1,
-                 %amount2 = Amount2,
-             salt  = Salt,
-             acc1 = Acc1,
-             cid1 = CID1,
-             type1 = Type1,
-             nonce = Nonce
-          } = Offer,
-
-    %check that it isn't expired.
-    B2 = (Height =< EL),
-
-    %check the nonce.
-    {ok, [_, BlockHash]} = talker:talk({top, 1}, FNL),
-    B3 = case CID1 of
-             <<0:256>> ->
-                 {ok, Acc} = talker:talk({account, Acc1, BlockHash}, FNL),
-                 {ok, Acc0} = talker:talk({account, Acc1}, FNL),
-                 if
-                     Acc == 0 -> false;
-                     true ->
-                         (Acc0#acc.nonce =< Nonce)
-                             and (Acc#acc.balance >= Amount1)
-                 end;
-             _ ->
-                 %Key = sub_accounts:make_key(Acc1, CID1, Type1),
-                 {ok, SubAcc} = talker:talk({sub_account, Acc1, CID1, Type1, BlockHash}, FNL),
-                 {ok, SubAcc0} = talker:talk({sub_account, Acc1, CID1, Type1}, FNL),
-                 if
-                     SubAcc == 0 -> false;
-                     true ->
-                         (SubAcc0#sub_acc.nonce =< Nonce)
-                             and (SubAcc#sub_acc.balance >= Amount1)
-                 end
-         end,
-
-    %check that the trade id isn't already consumed
-    B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
-
-    {ok, Txs} = talker:talk({txs}, FN),
-    B5 = no_repeats(Acc1, Salt, Txs),
-
-    B6 = B2 and B3 and B4 and B5,
-    if
-        not(B4) ->
-            trade_accepted;
-        (?verbose and not(B6)) ->
-            io:fwrite(packer:pack(swap_full:read(TID))),
-            io:fwrite("\n"),
-            io:fwrite(packer:pack([B2, B3, B4, B5])),
-            io:fwrite("\n"),
-            false;
-        not(B6) ->
-            false;
-        true -> 
-            true
-    end;
+%keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer) ->
+%    1=2,
+%    %UNUSED VERSION
+%    FNL = utils:server_url(internal),
+%    FN = utils:server_url(external),
+%    #swap_offer{
+%             end_limit = EL,
+%             amount1 = Amount1,
+%                 %amount2 = Amount2,
+%             salt  = Salt,
+%             acc1 = Acc1,
+%             cid1 = CID1,
+%             type1 = Type1,
+%             nonce = Nonce
+%          } = Offer,
+%
+%    %check that it isn't expired.
+%    B2 = (Height =< EL),
+%
+%    %check the nonce.
+%    {ok, [_, BlockHash]} = talker:talk({top, 1}, FNL),
+%    B3 = case CID1 of
+%             <<0:256>> ->
+%                 {ok, Acc} = talker:talk({account, Acc1, BlockHash}, FNL),
+%                 {ok, Acc0} = talker:talk({account, Acc1}, FNL),
+%                 if
+%                     Acc == 0 -> false;
+%                     true ->
+%                         (Acc0#acc.nonce =< Nonce)
+%                             and (Acc#acc.balance >= Amount1)
+%                 end;
+%             _ ->
+%                 %Key = sub_accounts:make_key(Acc1, CID1, Type1),
+%                 {ok, SubAcc} = talker:talk({sub_account, Acc1, CID1, Type1, BlockHash}, FNL),
+%                 {ok, SubAcc0} = talker:talk({sub_account, Acc1, CID1, Type1}, FNL),
+%                 if
+%                     SubAcc == 0 -> false;
+%                     true ->
+%                         (SubAcc0#sub_acc.nonce =< Nonce)
+%                             and (SubAcc#sub_acc.balance >= Amount1)
+%                 end
+%         end,
+%
+%    %check that the trade id isn't already consumed
+%    B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
+%
+%    {ok, Txs} = talker:talk({txs}, FN),
+%    B5 = no_repeats(Acc1, Salt, Txs),
+%
+%    B6 = B2 and B3 and B4 and B5,
+%    if
+%        not(B4) ->
+%            trade_accepted;
+%        (?verbose and not(B6)) ->
+%            io:fwrite(packer:pack(swap_full:read(TID))),
+%            io:fwrite("\n"),
+%            io:fwrite(packer:pack([B2, B3, B4, B5])),
+%            io:fwrite("\n"),
+%            false;
+%        not(B6) ->
+%            false;
+%        true -> 
+%            true
+%    end;
 keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
     FNL = utils:server_url(internal),
     %FN = utils:server_url(external),
@@ -173,6 +175,8 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
     %B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
     B6 = B2 and B3 and B4,
     if
+        not(B4) ->
+            already_accepted;
         (?verbose and not(B6)) ->
             io:fwrite(packer:pack(swap_full:read(TID))),
             io:fwrite("\n"),
