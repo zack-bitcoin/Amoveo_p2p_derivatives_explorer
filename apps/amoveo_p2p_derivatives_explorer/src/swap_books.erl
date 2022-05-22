@@ -188,11 +188,13 @@ merge(S, [H|T]) ->
     
 
 garbage_cron() ->
-    timer:sleep(?cron),
     spawn(fun() ->
+                  timer:sleep(?cron),
                   garbage()
           end),
     spawn(fun() ->
+                  timer:sleep(?cron),
+                  timer:sleep(?cron),
                   garbage_cron()
           end).
     
@@ -204,37 +206,37 @@ re_absorb_cron(SignedOffer, Height) ->
                   re_absorb_cron2(
                     SignedOffer, Height)
           end).
-re_absorb_cron_per_block(SignedOffer, Start, Recent) ->
-    %If the first offer is accepted, then we add the second to the pool.
-    FN = utils:server_url(external),
-    {ok, HeightNow} = talker:talk({height}, FN),
-    Offer = element(2, SignedOffer),
-    TID = utils:trade_id(Offer),
-    if
-        (HeightNow > (Start + 2)) ->
-            %out of time. try adding one last time.
-            http_handler:doit({add, SignedOffer, 0});
-            %swap_verify:doit(TID, SignedOffer, 
+%re_absorb_cron_per_block(SignedOffer, Start, Recent) ->
+%    %If the first offer is accepted, then we add the second to the pool.
+%    FN = utils:server_url(external),
+%    {ok, HeightNow} = talker:talk({height}, FN),
+%    Offer = element(2, SignedOffer),
+%    TID = utils:trade_id(Offer),
+%    if
+%        (HeightNow > (Start + 2)) ->
+%            %out of time. try adding one last time.
+%            http_handler:doit({add, SignedOffer, 0});
+%            %swap_verify:doit(TID, SignedOffer, 
             %                 HeightNow);
-        (HeightNow == Recent) ->
-            %wait longer for the next block.
-            timer:sleep(?cron),
-            re_absorb_cron_per_block(
-              SignedOffer, Start, Recent);
-        (HeightNow > Recent) ->
-            %maybe we can add it now.
-            B = swap_verify:keep_longer(Offer, Height2, TID),
-            if
-                B ->
-                    http_handler:doit({add, SignedOffer, 0});
-                   % swap_verify:doit(
+%        (HeightNow == Recent) ->
+%            %wait longer for the next block.
+%            timer:sleep(?cron),
+%            re_absorb_cron_per_block(
+%              SignedOffer, Start, Recent);
+%        (HeightNow > Recent) ->
+%            %maybe we can add it now.
+%            B = swap_verify:keep_longer(Offer, Height2, TID),
+%            if
+%                B ->
+%                    http_handler:doit({add, SignedOffer, 0});
+%                   % swap_verify:doit(
                    %   TID, SignedOffer, HeightNow);
-                true ->
-                    timer:sleep(?cron),
-                    re_absorb_cron_per_block(
-                      SignedOffer, Start, HeightNow)
-            end
-    end.
+%                true ->
+%                    timer:sleep(?cron),
+%                    re_absorb_cron_per_block(
+%                      SignedOffer, Start, HeightNow)
+%            end
+%    end.
 
 re_absorb_cron2(SignedOffer, Height1) ->
     %for 2 blocks, keep trying to re-add this offer to the order book.
@@ -243,7 +245,7 @@ re_absorb_cron2(SignedOffer, Height1) ->
     {ok, Height2} = talker:talk({height}, FN),
     Offer = element(2, SignedOffer),
     TID = utils:trade_id(Offer),
-    B = swap_verify:keep_longer(Offer, Height2, TID),%TODO we actually only need to check if their account/sub_account can afford the trade, and we only need to do this once per block.
+    B = swap_verify:keep_longer(Offer, Height2, TID),
     if
         Height2 > (Height1 + 2) -> 
             io:fwrite("re absorb cron deleted\n"),
