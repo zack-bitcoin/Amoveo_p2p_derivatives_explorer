@@ -145,7 +145,7 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
                   cid1 = CID1
                 } = Offer,
     %check that it isn't expired.
-    B2 = (Height =< EL),
+    B2 = (Height < EL),
     %balance check
     %{ok, [_, BlockHash]} = talker:talk({top, 1}, FNL),
     B3 = case CID1 of
