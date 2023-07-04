@@ -6,7 +6,8 @@ init(Req0, Opts) ->
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
 terminate(_Reason, _Req, _State) -> ok.
 handle(Req, State) ->
-    {ok, Data0, Req2} = cowboy_req:body(Req),
+    %{ok, Data0, Req2} = cowboy_req:body(Req),
+    {ok, Data0, Req2} = cowboy_req:read_body(Req),
     %{{IP, _}, Req3} = cowboy_req:peer(Req2),
     {IP, _} = cowboy_req:peer(Req2),
     %io:fwrite("http handler got message: "),
