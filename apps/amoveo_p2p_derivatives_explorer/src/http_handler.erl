@@ -18,8 +18,10 @@ handle(Req, State) ->
     D = packer:pack(doit(Data)),
     %Headers = #{ <<"content-type">> => <<"application/octet-stream">>,
 %	       <<"Access-Control-Allow-Origin">> => <<"*">>},
-    Headers=[{<<"content-type">>,<<"application/octet-stream">>},
-    {<<"Access-Control-Allow-Origin">>, <<"*">>}],
+    %Headers=[{<<"content-type">>,<<"application/octet-stream">>},
+    %{<<"Access-Control-Allow-Origin">>, <<"*">>}],
+    Headers = #{ <<"content-type">> => <<"application/octet-stream">>,
+	       <<"Access-Control-Allow-Origin">> => <<"*">>},
     %{ok, Req4} = cowboy_req:reply(200, Headers, D, Req2),
     Req4 = cowboy_req:reply(200, Headers, D, Req2),
     {ok, Req4, State}.
@@ -29,6 +31,7 @@ doit({add, 2, Text, Height}) ->
     CID = binary_contracts:add(Text, Height),
     {ok, CID};
 doit({add, 3, Text, Height, MaxPrice, Source, SourceType}) ->
+    io:fwrite("http handler.erl adding a scalar contract.\n"),
     CID = scalar_contracts:add(Text, Height, MaxPrice, Source, SourceType),
     {ok, CID};
 doit({add, 3, Text, Height, MaxPrice}) ->
@@ -154,7 +157,8 @@ doit({markets, 2}) ->
 %doit({read, 2, X}) -> {ok, close_offers:read(X)};
 doit(X) ->
     io:fwrite("http handler doit fail"),
-    io:fwrite(X).
+    io:fwrite(X),
+    error.
    
 is_in(X, []) -> false;
 is_in(X, [X|_]) -> true;

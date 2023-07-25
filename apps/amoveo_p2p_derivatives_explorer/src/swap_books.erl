@@ -160,8 +160,12 @@ garbage_orders([H|T], MID, Height) ->
                 if 
                     (B == true) -> [H];
                     (B == already_accepted) ->
-                        
-                        http_handler:doit({add, Second, 0});
+                        if
+                            not(Second == 0) ->
+                                http_handler:doit({add, Second, 0});
+                            true -> ok
+                        end,
+                        [];
                     true -> 
                         []
 %                        swap_history:remove(MID, TID),

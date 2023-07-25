@@ -170,7 +170,8 @@ keep_longer(Offer, Height, TID) when is_record(Offer, swap_offer2)->
              {ok, 0} -> true;
              {ok, Trade} ->
                  #trade{value = V} = Trade,
-                 V < (SN + Parts)
+                 V < (SN + Parts);
+             X -> io:fwrite({X, TID})
          end,
     %B4 = {ok, 0} == talker:talk({trade, TID}, FNL),
     B6 = B2 and B3 and B4,
