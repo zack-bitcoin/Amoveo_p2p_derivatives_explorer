@@ -83,8 +83,12 @@ clean() ->
     IN = utils:server_url(internal),
     {ok, H1} = talker:talk({height}, IN),
     {ok, H2} = talker:talk({height, 1}, IN),
+    TestMode = case application:get_env(amoveo_p2p_derivatives_explorer, test_mode) of
+                   {ok, B} -> B;
+                   _ -> false
+               end,
     if
-        H1 < 130000 -> 
+        ((not TestMode) and (H1 < 130000)) -> 
             io:fwrite("need to sync the full node first before cleaning scalar contracts");
         not(H1 == H2) ->
             io:fwrite("need to sync the blocks in the full node first before syncing scalar contracts.");

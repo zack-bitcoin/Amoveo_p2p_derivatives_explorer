@@ -12,7 +12,8 @@
     encrypter,
     jiffy,
     pink_hash,
-    chalang
+    chalang,
+    compiler
    ]},
   {env,[]},
   {modules, []},
